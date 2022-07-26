@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Is input empty?
+if [ "$1" = "" ]; then
+    echo "Input is empty. Usage: $(basename $0) [slackbuild...]"
+    exit 1
+fi
+
+# No options used with revlibpkg
+for t in "$@"; do
+  if [ "${t:0:1}" = "-" ]; then
+    echo -e "Invalid input $t. Usage: $(basename $0) [slackbuild...]"
+    exit 1
+  fi
+done
+
+hoorex=$(hoorex -r "$1")
+deps=( $hoorex )
+for d in ${deps[@]}; do
+  installed=$(find /var/lib/pkgtools/packages/ -name "${d}-*")
+  if [ ! -z "$installed" ]; then
+    pkg=$(basename $installed)
+    name=${pkg%-*-*-*}
+    if [ "$d" = "$name" ]; then
+      echo "[i] $name"
+    elif [ "$d" != "$name" ]; then
+      echo "[ ] $d"
+    fi
+  elif [ -z "$installed" ]; then
+    echo "[ ] $d"
+  fi
+done
