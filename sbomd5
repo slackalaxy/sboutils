@@ -30,7 +30,7 @@ if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" 
    
    # just one md5sum
    elif [ "$ARRAY_LAST" = "1" ]; then
-     sed -i '/MD5SUM=/,/MD5SUM=/{//!d}' $PRGNAM.info
+     sed -i '/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}' $PRGNAM.info
      sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]}\"" $PRGNAM.info
    
    # two md5sums

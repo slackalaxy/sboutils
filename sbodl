@@ -1,7 +1,6 @@
 #!/bin/bash
 
 PRGNAM=$(basename $PWD)
-echo "Processing $PRGNAM"
 
 . $PRGNAM.info
 
@@ -19,5 +18,3 @@ if [ ! -z "$DOWNLOAD_x86_64" ] && [ ! "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ 
     wget -c $d
   done
 fi
-
-unset $PRGNAM.info
