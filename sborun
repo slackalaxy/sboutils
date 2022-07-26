@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PRGNAM=$(basename $PWD)
+echo "runing $PRGNAM.SlackBuild"
+
+sh ./$PRGNAM.SlackBuild

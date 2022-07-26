@@ -1,0 +1,23 @@
+#!/bin/bash
+
+PRGNAM=$(basename $PWD)
+echo "Processing $PRGNAM"
+
+. $PRGNAM.info
+
+ARRAY_DOWNLOAD=($DOWNLOAD)
+ARRAY_DOWNLOAD_x86_64=($DOWNLOAD_x86_64)
+
+if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" = "UNTESTED" ]; then
+  for d in ${ARRAY_DOWNLOAD[@]}; do
+    wget -c $d
+  done
+fi
+
+if [ ! -z "$DOWNLOAD_x86_64" ] && [ ! "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD_x86_64" = "UNTESTED" ]; then
+  for d in ${ARRAY_DOWNLOAD_x86_64[@]}; do
+    wget -c $d
+  done
+fi
+
+unset $PRGNAM.info

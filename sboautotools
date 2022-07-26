@@ -1,0 +1,34 @@
+#!/bin/bash
+
+CONF=/home/petrov/Document/sbotools.conf
+TEMPLATES=/home/petrov/Document/Templates
+
+. $CONF
+
+PRGNAM=$(basename $PWD)
+EMPTY="$(printf '%*s' ${#PRGNAM})"
+YEAR=$(date +"%Y")
+
+cp $TEMPLATES/autotools-template.SlackBuild $PRGNAM.SlackBuild
+sed -i "s:appname:$PRGNAM:g" $PRGNAM.SlackBuild
+sed -i "s:<year>:$YEAR:" $PRGNAM.SlackBuild
+sed -i "s:<you>:$MAINTAINER:" $PRGNAM.SlackBuild
+sed -i "s:<where you live>:$LOCATION:" $PRGNAM.SlackBuild
+
+sed -i '/# |--/,/# |--/d' $PRGNAM.SlackBuild
+
+cp $TEMPLATES/slack-desc slack-desc
+sed -i "s:appname:$PRGNAM:g" slack-desc
+sed -i "s:       :$EMPTY:" slack-desc
+
+cp $TEMPLATES/template.info $PRGNAM.info
+sed -i "s:name of application:$PRGNAM:" $PRGNAM.info
+sed -i "s:version of application::" $PRGNAM.info
+sed -i 's:homepage of application::' $PRGNAM.info
+sed -i 's:direct download link(s) of application source tarball(s), x86_64 only::' $PRGNAM.info
+sed -i 's:direct download link(s) of application source tarball(s) arch-independent or x86::' $PRGNAM.info
+sed -i 's:md5sum(s) of the source tarball(s) defined in DOWNLOAD_x86_64::' $PRGNAM.info
+sed -i 's:md5sum(s) of the source tarball(s) defined in DOWNLOAD::' $PRGNAM.info
+sed -i 's:%README%::' $PRGNAM.info
+sed -i "s:name of SlackBuild script maintainer:$MAINTAINER:" $PRGNAM.info
+sed -i "s:email address of author:$EMAIL:" $PRGNAM.info

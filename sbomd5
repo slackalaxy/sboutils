@@ -1,0 +1,87 @@
+#!/bin/bash
+
+PRGNAM=$(basename $PWD)
+
+. $PRGNAM.info
+
+# Create arrays from the $DOWNLOAD variables
+ARRAY_DOWNLOAD=( $DOWNLOAD )
+
+# generate md5sum of download(s)
+if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" = "UNTESTED" ]; then
+  for d in ${ARRAY_DOWNLOAD[@]}; do
+    MD5SUM_UPDATE=$(md5sum `basename $d` | awk '{print $1}')
+    MD5SUM_STACK+="$MD5SUM_UPDATE "
+  done
+  
+  # this is the md5sums as an array
+  ARRAY_MD5SUM=( $MD5SUM_STACK )
+  
+  # how many elements in array?
+  ARRAY_LAST=${#ARRAY_MD5SUM[@]}
+  echo -e "$ARRAY_LAST MD5SUM sources, processing..."
+  
+  # _second last_ element index
+  LAST="$(( $ARRAY_LAST-2 ))"
+
+  # skip if no md5sum
+   if [ "$ARRAY_LAST" = "0" ]; then
+     echo -e "No MD5SUM sources, skipping..."
+   
+   # just one md5sum
+   elif [ "$ARRAY_LAST" = "1" ]; then
+     sed -i '/MD5SUM=/,/MD5SUM=/{//!d}' $PRGNAM.info
+     sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]}\"" $PRGNAM.info
+   
+   # two md5sums
+   elif [ "$ARRAY_LAST" = "2" ]; then
+     # First cleanup all rows in between
+     # https://nixtricks.wordpress.com/2013/01/09/sed-delete-the-lines-lying-in-between-two-patterns/
+     sed -i '/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}' $PRGNAM.info
+     # insert first row
+     sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]} \\\\" $PRGNAM.info
+     # insert last row
+     sed -i "/DOWNLOAD_x86_64=/c${ARRAY_MD5SUM[-1]}\"\nDOWNLOAD_x86_64=" $PRGNAM.info
+   
+   # several md5sums
+   elif [ "$ARRAY_LAST" -gt "2" ]; then
+     sed -i '/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}' $PRGNAM.info
+     sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]} \\\\" $PRGNAM.info
+     for e in ${ARRAY_MD5SUM[@]:1:$LAST}; do
+       # Insert rows before match:
+       # https://fabianlee.org/2018/10/28/linux-using-sed-to-insert-lines-before-or-after-a-match/
+       sed -i "/^DOWNLOAD_x86_64=/i $e \\\\" $PRGNAM.info
+     done
+     sed -i "/DOWNLOAD_x86_64=/c${ARRAY_MD5SUM[-1]}\"\nDOWNLOAD_x86_64=" $PRGNAM.info
+   fi
+fi
+
+ARRAY_DOWNLOAD_x86_64=( $DOWNLOAD_x86_64 )
+# md5sum if x64 download exists
+if [ ! -z "$DOWNLOAD_x86_64" ] && [ ! "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD_x86_64" = "UNTESTED" ]; then
+  for d in ${ARRAY_DOWNLOAD_x86_64[@]}; do
+    MD5SUM_x86_64_UPDATE=$(md5sum `basename $d` | awk '{print $1}')
+    MD5SUM_x86_64_STACK+="$MD5SUM_x86_64_UPDATE "
+  done
+  ARRAY_MD5SUM_x86_64=( $MD5SUM_x86_64_STACK )
+  ARRAY_x86_64_LAST=${#ARRAY_MD5SUM_x86_64[@]}
+  echo -e "$ARRAY_x86_64_LAST MD5SUM_x86_64 sources, processing..."
+  LAST_x86_64="$(( $ARRAY_x86_64_LAST-2 ))"
+   if [ "$ARRAY_x86_64_LAST" = "0" ]; then
+     echo -e "No MD5SUM_x86_64 sources, skipping..."
+   elif [ "$ARRAY_x86_64_LAST" = "1" ]; then
+     sed -i '/MD5SUM_x86_64=/,/REQUIRES=/{//!d}' $PRGNAM.info
+     sed -i "/MD5SUM_x86_64=/c\MD5SUM_x86_64=\"${ARRAY_MD5SUM_x86_64[0]}\"" $PRGNAM.info
+   elif [ "$ARRAY_x86_64_LAST" = "2" ]; then
+     sed -i '/MD5SUM_x86_64=/,/REQUIRES=/{//!d}' $PRGNAM.info
+     sed -i "/MD5SUM_x86_64=/c\MD5SUM_x86_64=\"${ARRAY_MD5SUM_x86_64[0]} \\\\" $PRGNAM.info
+     sed -i "/REQUIRES=/c${ARRAY_MD5SUM_x86_64[-1]}\"\nREQUIRES=" $PRGNAM.info
+   elif [ "$ARRAY_x86_64_LAST" -gt "2" ]; then
+     sed -i '/MD5SUM_x86_64=/,/REQUIRES=/{//!d}' $PRGNAM.info
+     sed -i "/MD5SUM_x86_64=/c\MD5SUM_x86_64=\"${ARRAY_MD5SUM_x86_64[0]} \\\\" $PRGNAM.info
+     for e in ${ARRAY_MD5SUM_x86_64[@]:1:$LAST_x86_64}; do
+       sed -i "/^REQUIRES=/i $e \\\\" $PRGNAM.info
+     done
+     sed -i "/REQUIRES=/c${ARRAY_MD5SUM[-1]}\"\nREQUIRES=" $PRGNAM.info
+   fi
+fi
