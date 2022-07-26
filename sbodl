@@ -2,6 +2,11 @@
 
 PRGNAM=$(basename $PWD)
 
+if [ ! -f $PRGNAM.info ]; then
+  echo "No $PRGNAM.info found! Exiting..."
+  exit 1
+fi
+
 . $PRGNAM.info
 
 ARRAY_DOWNLOAD=($DOWNLOAD)

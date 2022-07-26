@@ -1,6 +1,10 @@
 #!/bin/bash
 
 PRGNAM=$(basename $PWD)
-echo "runing $PRGNAM.SlackBuild"
+
+if [ ! -f $PRGNAM.SlackBuild ]; then
+  echo "No $PRGNAM.SlackBuild found! Exiting..."
+  exit 1
+fi
 
 sh ./$PRGNAM.SlackBuild

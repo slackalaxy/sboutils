@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONF=/home/petrov/Document/sbotools.conf
+CONF=./sbotools.conf
 TEMPLATES=/home/petrov/Document/Templates
 
 . $CONF

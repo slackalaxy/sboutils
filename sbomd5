@@ -2,6 +2,11 @@
 
 PRGNAM=$(basename $PWD)
 
+if [ ! -f $PRGNAM.info ]; then
+  echo "No $PRGNAM.info found! Exiting..."
+  exit 1
+fi
+
 . $PRGNAM.info
 
 # Create arrays from the $DOWNLOAD variables
@@ -56,8 +61,8 @@ if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" 
    fi
 fi
 
-ARRAY_DOWNLOAD_x86_64=( $DOWNLOAD_x86_64 )
 # md5sum if x64 download exists
+ARRAY_DOWNLOAD_x86_64=( $DOWNLOAD_x86_64 )
 if [ ! -z "$DOWNLOAD_x86_64" ] && [ ! "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD_x86_64" = "UNTESTED" ]; then
   for d in ${ARRAY_DOWNLOAD_x86_64[@]}; do
     MD5SUM_x86_64_UPDATE=$(md5sum `basename $d` | awk '{print $1}')
