@@ -17,21 +17,24 @@ done
 hoorex=$(hoorex "$1")
 depnds=( $hoorex )
 elements=${#depnds[@]}
+# last element index
 lastel="$(( $elements-1 ))"
 
-installed=$(find /var/lib/pkgtools/packages/ -name "${1}-*")
-  if [ ! -z "$installed" ]; then
+installed=$(find /var/lib/pkgtools/packages/ -name "${depnds[0]}-*")
+if [ -z "${depnds[0]}" ]; then
+  echo "${1} not found on SBo. Exiting..."
+  exit 0
+elif [ ! -z "$installed" ]; then
     pkg=$(basename $installed)
     name=${pkg%-*-*-*}
-    if [ "$1" = "$name" ]; then
+    if [ "${depnds[0]}" = "$name" ]; then
       echo "[i] $name"
-    elif [ "$d" != "$name" ]; then
-      echo "[ ] $1"
+    elif [ "${depnds[0]}" != "$name" ]; then
+      echo "[ ] ${depnds[0]}"
     fi
   elif [ -z "$installed" ]; then
-    echo "[ ] $1"
+    echo "[ ] ${depnds[0]}"
 fi
-
 
 for d in ${depnds[@]:1:$lastel}; do
   installed=$(find /var/lib/pkgtools/packages/ -name "${d}-*")
