@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Is input empty?
+if [ "$1" = "" ]; then
+    echo "Input is empty. Usage: $(basename $0) [template...]"
+    exit 1
+fi
+
+# # No options used with revlibpkg
+# for t in "$@"; do
+#   if [ "${t:0:1}" = "-" ]; then
+#     echo -e "Invalid input $t. Usage: $(basename $0) [template...]"
+#     exit 1
+#   fi
+# done
+
 CONF=/etc/sboutils.conf
 TEMPLATES=/usr/share/sboutils/templates
 
@@ -9,7 +23,8 @@ PRGNAM=$(basename $PWD)
 EMPTY="$(printf '%*s' ${#PRGNAM})"
 YEAR=$(date +"%Y")
 
-cp $TEMPLATES/autotools-template.SlackBuild $PRGNAM.SlackBuild
+prepare(){
+cp $TEMPLATES/$template-template.SlackBuild $PRGNAM.SlackBuild
 sed -i "s:appname:$PRGNAM:g" $PRGNAM.SlackBuild
 sed -i "s:<year>:$YEAR:" $PRGNAM.SlackBuild
 sed -i "s:<you>:$MAINTAINER:" $PRGNAM.SlackBuild
@@ -32,3 +47,63 @@ sed -i 's:md5sum(s) of the source tarball(s) defined in DOWNLOAD::' $PRGNAM.info
 sed -i 's:%README%::' $PRGNAM.info
 sed -i "s:name of SlackBuild script maintainer:$MAINTAINER:" $PRGNAM.info
 sed -i "s:email address of author:$EMAIL:" $PRGNAM.info
+}
+
+while [ "$1" ]; do
+  case $1 in
+  auto)
+    template=autotools
+    prepare
+    ;;
+    
+  cmake)
+    template=cmake
+    prepare
+    ;;
+  
+  haskell)
+    template=haskell
+    prepare
+    ;;
+    
+  meson)
+    template=meson
+    prepare
+    ;;
+    
+  perl)
+    template=perl
+    prepare
+    ;;
+    
+  python)
+    template=python
+    prepare
+    ;;
+    
+  ruby)
+    template=rubygem
+    prepare
+    ;;
+    
+  -di)
+    cp $TEMPLATES/doinst.sh .
+    ;;
+
+  -du)
+    cp $TEMPLATES/douninst.sh .
+    ;;
+  
+  -de)
+    cp $TEMPLATES/template.desktop $PRGNAM.desktop
+    ;;
+
+  *)
+    echo "Unknown template/option:"
+    echo "Templates: auto, cmake, haskell, meson, perl, python, ruby"
+    echo "Options: -di (doinst.sh), -du (douninst.sh), -de (desktop)"
+    ;;
+  
+  esac
+  shift
+done
