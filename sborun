@@ -2,9 +2,57 @@
 
 PRGNAM=$(basename $PWD)
 
+helper(){
+  echo -e "Usage: $(basename $0) [options]"
+  echo -e "Options:"
+  echo -e "  -i,   --install             run SlackBuild and install package"
+  echo -e "  -u,   --upgrade             run SlackBuild and upgrade package"
+  echo -e "  -fr,  --force-reinstall     run SlackBuild and force reinstall package"
+}
+
 if [ ! -f $PRGNAM.SlackBuild ]; then
   echo "No $PRGNAM.SlackBuild found! Exiting..."
   exit 1
 fi
 
+if [ ! -f $PRGNAM.info ]; then
+  echo "No $PRGNAM.info found! Exiting..."
+  exit 1
+fi
+
+if [ ! -f slack-desc ]; then
+  echo "No slack-desc found! Exiting..."
+  exit 1
+fi
+
+. $PRGNAM.info
+PACKAGE=$(PRINT_PACKAGE_NAME="true" ./$PRGNAM.SlackBuild)
+
 sh ./$PRGNAM.SlackBuild
+
+while [ "$1" ]; do
+  case $1 in
+  -i|--install)
+    installpkg /tmp/$PACKAGE
+    ;;
+    
+  -u|--upgrade)
+    upgradepkg /tmp/$PACKAGE
+    ;;
+  
+  -fr|--force-reinstall)
+    upgradepkg --reinstall --install-new /tmp/$PACKAGE
+    ;;
+    
+  -h|--help)
+    helper
+    ;;
+    
+  *)
+    echo "Unknown option"
+    helper
+    ;;
+  
+  esac
+  shift
+done
