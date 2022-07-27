@@ -6,25 +6,28 @@ if [ "$1" = "" ]; then
     exit 1
 fi
 
-# No options used with revlibpkg
-for t in "$@"; do
-  if [ "${t:0:1}" = "-" ]; then
-    echo -e "Invalid input $t. Usage: $(basename $0) [slackbuild...]"
-    exit 1
-  fi
-done
+CONF=/etc/sboutils.conf
+. $CONF
 
-hoorex=$(hoorex -r "$1")
-if [ -z "$hoorex" ]; then
-  echo "$1 not found at SlackBuilds.org"
-  exit 1
-fi
+LOCATION=$(cat $REPO/SLACKBUILDS.TXT | grep -w $1 | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
+FULLPATH=$REPO$LOCATION
 
-hoorex_array=( $hoorex )
+SHORTDESC=$(cat $REPO/SLACKBUILDS.TXT | grep -w $1 | grep DESCRIPTION | sed "s|SLACKBUILD SHORT DESCRIPTION:  ||" | sed "s|$1 ||")
 
-echo "--- dependencies: ([i] installed)"
+. $FULLPATH/$1.info
 
-for d in ${hoorex_array[@]}; do
+# Output
+echo $LOCATION $SHORTDESC $VERSION
+echo $HOMEPAGE
+
+echo ""
+cat $FULLPATH/README
+echo ""
+echo "--- direct dependencies: ([i] installed)"
+
+requires_array=( $REQUIRES )
+
+for d in ${requires_array[@]}; do
   pkg=""
   
   # check if dependency ($d) is among installed pkgs
