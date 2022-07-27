@@ -15,6 +15,11 @@ for t in "$@"; do
 done
 
 hoorex=$(hoorex -r "$1")
+if [ -z "$hoorex" ]; then
+  echo "$1 not found at SlackBuilds.org"
+  exit 1
+fi
+
 hoorex_array=( $hoorex )
 
 echo "--- dependencies: ([i] installed, [ ] not installed)"
