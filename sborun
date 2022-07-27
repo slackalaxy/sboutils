@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 PRGNAM=$(basename $PWD)
 
 helper(){
@@ -26,8 +28,8 @@ if [ ! -f slack-desc ]; then
 fi
 
 . $PRGNAM.info
+chmod +x ./$PRGNAM.SlackBuild
 PACKAGE=$(PRINT_PACKAGE_NAME="true" ./$PRGNAM.SlackBuild)
-
 sh ./$PRGNAM.SlackBuild
 
 while [ "$1" ]; do
