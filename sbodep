@@ -15,19 +15,34 @@ for t in "$@"; do
 done
 
 hoorex=$(hoorex -r "$1")
-deps=( $hoorex )
-echo "--- dependencies ([i] installed, [ ] not installed)"
-for d in ${deps[@]}; do
-  installed=$(find /var/lib/pkgtools/packages/ -name "${d}-*")
+hoorex_array=( $hoorex )
+
+echo "--- dependencies: ([i] installed, [ ] not installed)"
+
+for d in ${hoorex_array[@]}; do
+  pkg=""
+  
+  # check if dependency ($d) is among installed pkgs
+  installed=$(find /var/lib/pkgtools/packages/ -name "${d}-*" )
+  installed_array=( $installed )
+  
   if [ ! -z "$installed" ]; then
-    inst=( $installed )
-    for i in ${inst[@]}; do
-      pkg=$(basename $i)
-      name=${pkg%-*-*-*}
-      if [ "$d" = "$name" ]; then
-        echo "[i] $name"
-      fi
+    for i in ${installed_array[@]}; do
+      # Name can be tricky, think of <lignome> and <libgnome-keyring>...
+      # So collect here all names that matched the search, removing the
+      # full path and trimming the stuff separated by the last 3 dashes
+      # in the package name.
+      pkg+=$(echo "`basename ${i%-*-*-*}` ")
     done
+    pkg_array=( $pkg )
+    
+    # search if array contains element or not
+    # https://stackoverflow.com/a/15394738
+    if [[ " ${pkg_array[*]} " =~ " ${d} " ]]; then
+      echo "[i] $d"
+    elif [[ ! " ${pkg_array[*]} " =~ " ${d} " ]]; then
+      echo "[ ] $d"
+    fi
   elif [ -z "$installed" ]; then
     echo "[ ] $d"
   fi
