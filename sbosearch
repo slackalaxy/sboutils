@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Is input empty?
+if [ "$1" = "" ]; then
+    echo "Input is empty. Usage: $(basename $0) [slackbuild...]"
+    exit 1
+fi
+
+CONF=/etc/sboutils.conf
+. $CONF
+
+LOCATION=$(cat $REPO/SLACKBUILDS.TXT | grep -i "${1}" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
+LOCATION_array=( $LOCATION )
+for i in ${LOCATION_array[@]}; do
+  echo -e "$i"
+done
