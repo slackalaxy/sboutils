@@ -3,9 +3,20 @@
 PRGNAM=$(basename $PWD)
 . /etc/sboutils.conf
 . $PRGNAM.info
+
 PACKAGE_NAME=$(PRINT_PACKAGE_NAME="true" bash ./$PRGNAM.SlackBuild)
+
 ARRAY_DOWNLOAD=($DOWNLOAD)
 ARRAY_DOWNLOAD_x86_64=($DOWNLOAD_x86_64)
+
+SBO_DOWNLOAD_ONLY="no"
+SBO_UPDATE_MD5SUM="no"
+SBO_DOWNLOAD="no"
+SBO_INSTALL="no"
+SBO_UPGRADE="no"
+SBO_WARN="no"
+SBO_REBUILD="no"
+SBO_REINSTALL="no"
 
 download_source(){
 	if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" = "UNTESTED" ]; then
@@ -37,7 +48,7 @@ install_warn(){
 	installpkg --warn $PKGS/$PACKAGE_NAME
 }
 
-force_reinstall(){
+reinstall_package(){
 	upgradepkg --reinstall --install-new $PKGS/$PACKAGE_NAME
 }
 
@@ -99,6 +110,20 @@ update_md5sum(){
 	fi
 }
 
+helper() {
+	echo "Usage: `basename $0` [options]"
+	echo "Options:"
+	echo "  -i,   --install           build and install package"
+	echo "  -u,   --upgrade           build and upgrade package"
+	echo "  -w,   --warn              warn if package overwrites files"
+	echo "  -r,   --rebuild           rebuild package"
+	echo "  -ri,  --reinstall         rebuild and reinstall package"
+	echo "  -d,   --download          download source and build package"
+	echo "  -do,  --download-only     source download only"
+	echo "  -um,  --update-md5        update md5sum of source"
+	echo "  -h,   --help              print this help"
+}
+
 options(){
 	while [ "$1" ]; do
 		case $1 in
@@ -111,8 +136,11 @@ options(){
 			-w|--warn)
 				SBO_WARN="yes"
 			;;
-			-fr|--force-reinstall)
-				SBO_FORCE_REINSTALL="yes"
+			-r|--rebuild)
+				SBO_REBUILD="yes"
+			;;
+			-ri|--reinstall)
+				SBO_REINSTALL="yes"
 			;;
 			-d|--download)
 				SBO_DOWNLOAD="yes"
@@ -153,9 +181,19 @@ main(){
 		download_source
 	fi
 
-	build
+	if [ -f $PKGS/$PACKAGE_NAME ] && [ "$SBO_REBUILD" = "no" ] && [ "$SBO_REINSTALL" = "no" ]; then
+		echo "$PACKAGE_NAME exists. Exiting."
+		exit 0
+	else
+		build
+	fi
 
 	if [ "$SBO_INSTALL" = "yes" ]; then
+		install_package
+		exit 0
+	fi
+
+	if [ "$SBO_REINSTALL" = "yes" ]; then
 		install_package
 		exit 0
 	fi
@@ -170,8 +208,8 @@ main(){
 		exit 0
 	fi
 
-	if [ "$SBO_FORCE_REINSTALL" = "yes" ]; then
-		install_force
+	if [ "$SBO_REINSTALL" = "yes" ]; then
+		reinstall_package
 		exit 0
 	fi
 
