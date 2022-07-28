@@ -10,6 +10,12 @@ CONF=/etc/sboutils.conf
 . $CONF
 
 LOCATION=$(cat $REPO/SLACKBUILDS.TXT | grep "/${1}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
+
+if [ -z $LOCATION ]; then
+  echo "$1 not found on SlackBuilds.org! Exiting..."
+  exit 1
+fi
+
 FULLPATH=$REPO$LOCATION
 . $FULLPATH/$1.info
 SHORTDESC=$(cat $FULLPATH/slack-desc | grep "${1}: ${1}" | sed "s|${1}: ||")
