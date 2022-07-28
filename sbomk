@@ -1,0 +1,126 @@
+#!/bin/bash
+
+PRGNAM=$(basename $PWD)
+. /etc/sboutils.conf
+. $PRGNAM.info
+PACKAGE_NAME=$(PRINT_PACKAGE_NAME="true" bash ./$PRGNAM.SlackBuild)
+
+download_source(){
+	ARRAY_DOWNLOAD=($DOWNLOAD)
+	ARRAY_DOWNLOAD_x86_64=($DOWNLOAD_x86_64)
+
+	if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" = "UNTESTED" ]; then
+		for d in ${ARRAY_DOWNLOAD[@]}; do
+			wget -c $d
+		done
+	fi
+
+	if [ ! -z "$DOWNLOAD_x86_64" ] && [ ! "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD_x86_64" = "UNTESTED" ]; then
+		for d in ${ARRAY_DOWNLOAD_x86_64[@]}; do
+			wget -c $d
+		done
+	fi
+}
+
+build(){
+	bash ./$PRGNAM.SlackBuild
+}
+
+install_package(){
+	installpkg $PKGS/$PACKAGE_NAME
+}
+
+upgrade_package(){
+	upgradepkg $PKGS/$PACKAGE_NAME
+}
+
+install_warn(){
+	installpkg --warn $PKGS/$PACKAGE_NAME
+}
+
+force_reinstall(){
+	upgradepkg --reinstall --install-new $PKGS/$PACKAGE_NAME
+}
+
+options(){
+	while [ "$1" ]; do
+		case $1 in
+			-i|--install)
+				SBO_INSTALL="yes"
+			;;
+  			-u|--upgrade)
+				SBO_UPGRADE="yes"
+			;;
+			-w|--warn)
+				SBO_WARN="yes"
+			;;
+			-fr|--force-reinstall)
+				SBO_FORCE_REINSTALL="yes"
+			;;
+			-d|--download)
+				SBO_DOWNLOAD="yes"
+			;;
+			-do|--download-only)
+				SBO_DOWNLOAD_ONLY="yes"
+			;;
+			-um|--update-md5)
+				SBO_UPDATE_MD5SUM="yes"
+			;;
+			-h|--help)
+				helper
+				exit 0
+			;;
+			*)
+				echo "Unknown option $1"
+				exit 1
+			;;
+  		esac
+	shift
+	done
+}
+
+main(){
+	options "$@"
+
+	if [ "$SBO_DOWNLOAD_ONLY" = "yes" ]; then
+		download_source
+		exit 0
+	fi
+	
+	if [ "$SBO_UPDATE_MD5SUM" = "yes" ]; then
+		download_source
+		exit 0
+	fi
+
+	if [ "$SBO_DOWNLOAD" = "yes" ]; then
+		download_source
+	fi
+
+	build
+
+	if [ "$SBO_INSTALL" = "yes" ]; then
+		install_package
+		exit 0
+	fi
+
+	if [ "$SBO_UPGRADE" = "yes" ]; then
+		upgrade_package
+		exit 0
+	fi
+
+	if [ "$SBO_WARN" = "yes" ]; then
+		install_warn
+		exit 0
+	fi
+
+	if [ "$SBO_FORCE_REINSTALL" = "yes" ]; then
+		install_force
+		exit 0
+	fi
+
+	exit 0
+}
+
+main "$@"
+
+# End of file
