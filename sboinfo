@@ -9,16 +9,18 @@ fi
 CONF=/etc/sboutils.conf
 . $CONF
 
-LOCATION=$(cat $REPO/SLACKBUILDS.TXT | grep -w $1 | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
+LOCATION=$(cat $REPO/SLACKBUILDS.TXT | grep -w "${1}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
 FULLPATH=$REPO$LOCATION
-
-SHORTDESC=$(cat $REPO/SLACKBUILDS.TXT | grep -w $1 | grep DESCRIPTION | sed "s|SLACKBUILD SHORT DESCRIPTION:  ||" | sed "s|$1 ||")
+SHORTDESC=$(cat $FULLPATH/slack-desc | grep "${1}: ${1}" | sed "s|${1}: ||")
 
 . $FULLPATH/$1.info
 
 # Output
-echo $LOCATION $SHORTDESC $VERSION
-echo $HOMEPAGE
+echo ""
+echo "$SHORTDESC"
+echo "Version:  $VERSION"
+echo "Category: $LOCATION"
+echo "Homepage: $HOMEPAGE"
 
 echo ""
 cat $FULLPATH/README
