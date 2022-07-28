@@ -15,35 +15,68 @@ for t in "$@"; do
 done
 
 hoorex=$(hoorex "$1")
-depnds=( $hoorex )
-elements=${#depnds[@]}
-# last element index
-lastel="$(( $elements-1 ))"
-
-installed=$(find /var/lib/pkgtools/packages/ -name "${depnds[0]}-*")
-if [ -z "${depnds[0]}" ]; then
-  echo "${1} not found on SBo. Exiting..."
-  exit 0
-elif [ ! -z "$installed" ]; then
-    pkg=$(basename $installed)
-    name=${pkg%-*-*-*}
-    if [ "${depnds[0]}" = "$name" ]; then
-      echo "[i] $name"
-    elif [ "${depnds[0]}" != "$name" ]; then
-      echo "[ ] ${depnds[0]}"
-    fi
-  elif [ -z "$installed" ]; then
-    echo "[ ] ${depnds[0]}"
+if [ -z "$hoorex" ]; then
+  echo "$1 not found at SlackBuilds.org"
+  exit 1
 fi
 
-for d in ${depnds[@]:1:$lastel}; do
-  installed=$(find /var/lib/pkgtools/packages/ -name "${d}-*")
+hoorex_array=( $hoorex )
+last_element=${#hoorex_array}
+#echo $last_element
+echo "--- dependencies: ([i] installed)"
+#echo "${hoorex_array[0]}"
+
+for d in ${hoorex_array[0]}; do
+  pkg=""
+  
+  # check if dependency ($d) is among installed pkgs
+  installed=$(find /var/lib/pkgtools/packages/ -name "${d}-*" )
+  installed_array=( $installed )
+  
   if [ ! -z "$installed" ]; then
-    pkg=$(basename $installed)
-    name=${pkg%-*-*-*}
-    if [ "$d" = "$name" ]; then
-      echo "    [i] $name"
-    elif [ "$d" != "$name" ]; then
+    for i in ${installed_array[@]}; do
+      # Name can be tricky, think of <lignome> and <libgnome-keyring>...
+      # So collect here all names that matched the search, removing the
+      # full path and trimming the stuff separated by the last 3 dashes
+      # in the package name.
+      pkg+=$(echo "`basename ${i%-*-*-*}` ")
+    done
+    pkg_array=( $pkg )
+    
+    # search if array contains element or not
+    # https://stackoverflow.com/a/15394738
+    if [[ " ${pkg_array[*]} " =~ " ${d} " ]]; then
+      echo "[i] $d"
+    elif [[ ! " ${pkg_array[*]} " =~ " ${d} " ]]; then
+      echo "[ ] $d"
+    fi
+  elif [ -z "$installed" ]; then
+    echo "[ ] $d"
+  fi
+done
+
+for d in ${hoorex_array[@]:1:$last_element}; do
+  pkg=""
+  
+  # check if dependency ($d) is among installed pkgs
+  installed=$(find /var/lib/pkgtools/packages/ -name "${d}-*" )
+  installed_array=( $installed )
+  
+  if [ ! -z "$installed" ]; then
+    for i in ${installed_array[@]}; do
+      # Name can be tricky, think of <lignome> and <libgnome-keyring>...
+      # So collect here all names that matched the search, removing the
+      # full path and trimming the stuff separated by the last 3 dashes
+      # in the package name.
+      pkg+=$(echo "`basename ${i%-*-*-*}` ")
+    done
+    pkg_array=( $pkg )
+    
+    # search if array contains element or not
+    # https://stackoverflow.com/a/15394738
+    if [[ " ${pkg_array[*]} " =~ " ${d} " ]]; then
+      echo "    [i] $d"
+    elif [[ ! " ${pkg_array[*]} " =~ " ${d} " ]]; then
       echo "    [ ] $d"
     fi
   elif [ -z "$installed" ]; then

@@ -24,6 +24,7 @@ hoorex_array=( $hoorex )
 
 echo "--- dependencies: ([i] installed)"
 
+list_deps(){
 for d in ${hoorex_array[@]}; do
   pkg=""
   
@@ -52,3 +53,4 @@ for d in ${hoorex_array[@]}; do
     echo "[ ] $d"
   fi
 done
+}
