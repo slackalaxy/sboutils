@@ -1,2 +1,33 @@
 #!/bin/bash
 
+PRGNAM=$(basename $PWD)
+
+. /etc/sboutils.conf
+
+SBO_TEMPLATE_AUTOTOOLS="no"
+SBO_TEMPLATE_CMAKE="no"
+SBO_TEMPLATE_HASKELL="no"
+SBO_TEMPLATE_MESON="no"
+SBO_TEMPLATE_PERL="no"
+SBO_TEMPLATE_PYTHON="no"
+SBO_TEMPLATE_RUBYGEM="no"
+SBO_TEMPLATE_DOINST="no"
+SBO_TEMPLATE_DOUNINST="no"
+SBO_TEMPLATE_DESKTOP="no"
+SBO_DOWNLOAD="no"
+SBO_CHECK_MD5SUM="no"
+
+check_input(){
+	if [ ! -f $PRGNAM.SlackBuild ]; then
+		echo "$PRGNAM.SlackBuild does not exist. Exiting."
+		exit 1
+	elif [ ! -f $PRGNAM.info ]; then
+		echo "$PRGNAM.info does not exist. Exiting."
+		exit 1
+	elif [ ! -f slack-desc ]; then
+		echo "slack-desk does not exist. Exiting."
+		exit 1
+	fi
+}
+
+

@@ -4,20 +4,6 @@ PRGNAM=$(basename $PWD)
 
 . /etc/sboutils.conf
 
-load_variables(){
-	. $PRGNAM.info
-	
-	# what would be package name and is it installed
-	PACKAGE_NAME=$(PRINT_PACKAGE_NAME="true" bash ./$PRGNAM.SlackBuild)
-	PACKAGE_INST=$(find /var/lib/pkgtools/packages/ -name "${PACKAGE_NAME%.*}")
-
-	# Load sources and their md5sums as arrays
-	read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
-	read -r -d '' -a ARRAY_DOWNLOAD_x86_64 < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
-	read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
-	read -r -d '' -a ARRAY_MD5SUM_x86_64 < <( echo "$MD5SUM_x86_64" && printf '\0' )
-}
-
 SBO_INSTALL="no"
 SBO_UPGRADE="no"
 SBO_WARN="no"
@@ -38,6 +24,24 @@ check_input(){
 		echo "slack-desk does not exist. Exiting."
 		exit 1
 	fi
+}
+
+load_info(){
+	. $PRGNAM.info
+}
+
+does_package_exist(){
+# what would be package name and search the installed packages database
+	PACKAGE_NAME=$(PRINT_PACKAGE_NAME="true" bash ./$PRGNAM.SlackBuild)
+	PACKAGE_INST=$(find /var/lib/pkgtools/packages/ -name "${PACKAGE_NAME%.*}")
+}
+
+load_sources(){
+# Load sources and their md5sums as arrays
+	read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
+	read -r -d '' -a ARRAY_DOWNLOAD_x86_64 < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
+	read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
+	read -r -d '' -a ARRAY_MD5SUM_x86_64 < <( echo "$MD5SUM_x86_64" && printf '\0' )
 }
 
 check_installpkg(){
@@ -187,7 +191,9 @@ main(){
 	options "$@"
 
 	check_input
-	load_variables
+	load_info
+	does_package_exist
+	load_sources
 
 	# functions to execute pre-build
 	if [ $SBO_DOWNLOAD = "yes" ]; then
