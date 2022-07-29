@@ -17,7 +17,7 @@ SBO_TEMPLATE_DESKTOP="no"
 SBO_DOWNLOAD="no"
 SBO_CHECK_MD5SUM="no"
 
-check_input(){
+check_input_files(){
 	if [ ! -f $PRGNAM.SlackBuild ]; then
 		echo "$PRGNAM.SlackBuild does not exist. Exiting."
 		exit 1
@@ -31,3 +31,19 @@ check_input(){
 }
 
 
+TEMPLATES=/usr/share/sboutils/templates
+
+helper() {
+	echo "Run `basename $0` from within the SlackBuild folder."
+	echo "Usage: `basename $0` [template] [options]"
+	echo "Templates: auto (autotools), cmake, haskell, meson,"
+	echo "           perl, python, ruby (rubygem)"
+	echo "Options:"
+	echo "  -di,  --doinst            copy doinst.sh file"
+	echo "  -du,  --douninst          copy douninst.sh file"
+	echo "  -de,  --desktop           copy template.desktop file"
+	echo "  -um,  --update-md5        update sources md5sum"
+	echo "  -h,   --help              print this help"
+}
+
+helper

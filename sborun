@@ -13,7 +13,7 @@ SBO_DOWNLOAD="no"
 SBO_CHECK_MD5SUM="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
 
-check_input(){
+check_input_files(){
 	if [ ! -f $PRGNAM.SlackBuild ]; then
 		echo "$PRGNAM.SlackBuild does not exist. Exiting."
 		exit 1
@@ -141,7 +141,7 @@ helper() {
 	echo "  -w,   --warn              warn if package will overwrite files"
 	echo "  -r,   --rebuild           rebuild package"
 	echo "  -ri,  --reinstall         rebuild and reinstall package"
-	echo "  -do,  --download-only     download sources and exit"
+	echo "  -d,   --download          download sources and exit"
 	echo "  -nc,  --no-certificate    do not check download certificate"
 	echo "  -cm,  --check-md5         check sources md5sum and exit"
 	echo "  -h,   --help              print this help"
@@ -165,7 +165,7 @@ options(){
 			-ri|--reinstall)
 				SBO_REINSTALL="yes"
 			;;
-			-do|--download-only)
+			-d|--download)
 				SBO_DOWNLOAD="yes"
 			;;
 			-nc|--no-certificate)
@@ -190,7 +190,7 @@ options(){
 main(){
 	options "$@"
 
-	check_input
+	check_input_files
 	load_info
 	does_package_exist
 	load_sources
