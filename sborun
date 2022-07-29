@@ -1,60 +1,180 @@
 #!/bin/bash
 
-set -e
-
 PRGNAM=$(basename $PWD)
+. /etc/sboutils.conf
+. $PRGNAM.info
 
-helper(){
-  echo -e "Usage: $(basename $0) [options]"
-  echo -e "Options:"
-  echo -e "  -i,   --install             run SlackBuild and install package"
-  echo -e "  -u,   --upgrade             run SlackBuild and upgrade package"
-  echo -e "  -fr,  --force-reinstall     run SlackBuild and force reinstall package"
+PACKAGE_NAME=$(PRINT_PACKAGE_NAME="true" bash ./$PRGNAM.SlackBuild)
+
+read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
+read -r -d '' -a ARRAY_DOWNLOAD_x86_64 < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
+read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
+read -r -d '' -a ARRAY_MD5SUM_x86_64 < <( echo "$MD5SUM_x86_64" && printf '\0' )
+
+SBO_INSTALL="no"
+SBO_UPGRADE="no"
+SBO_WARN="no"
+SBO_REBUILD="no"
+SBO_REINSTALL="no"
+
+is_package_installed(){
+	pkg=$( find /var/lib/pkgtools/packages/ -name "${PACKAGE_NAME%.*}" )
+	if [ ! -z "$pkg" ]; then
+		PKG_INSTALLED="yes"
+	else
+		PKG_INSTALLED="no"
+	fi
 }
 
-if [ ! -f $PRGNAM.SlackBuild ]; then
-  echo "No $PRGNAM.SlackBuild found! Exiting..."
-  exit 1
-fi
+download_source(){
+	if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" = "UNTESTED" ]; then
+		for d in ${ARRAY_DOWNLOAD[@]}; do
+			if [ -f `basename $d` ]; then
+				echo "`basename $d`"
+			else
+				wget -c $d
+			fi
+		done
+	fi
+	if [ ! -z "$DOWNLOAD_x86_64" ] && [ ! "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD_x86_64" = "UNTESTED" ]; then
+		for d in ${ARRAY_DOWNLOAD_x86_64[@]}; do
+			if [ -f `basename $d` ]; then
+				echo "`basename $d`"
+			else
+				wget -c $d
+			fi
+		done
+	fi
+}
 
-if [ ! -f $PRGNAM.info ]; then
-  echo "No $PRGNAM.info found! Exiting..."
-  exit 1
-fi
+check_md5sum_source(){
+	if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" = "UNTESTED" ]; then
+		echo "---- check md5sum ([m] match, [e] mismatch, [ ] missing)"
+		for (( d=0; d<${#ARRAY_DOWNLOAD[@]}; d++ )); do
+			NAME_d=$(basename ${ARRAY_DOWNLOAD[$d]})
+			if [ ! -f "$NAME_d" ]; then
+				echo "[ ] ${ARRAY_DOWNLOAD[$d]}"
+				exit 0
+			elif [ -f "$NAME_d" ]; then
+				MD5SUM_d=$(md5sum $NAME_d | awk '{print $1}')
+				if [ "$MD5SUM_d" = "${ARRAY_MD5SUM[$d]}" ]; then
+					echo "[m] $NAME_d"
+				elif [ "$MD5SUM_d" != "${ARRAY_MD5SUM[$d]}" ]; then
+					echo "[e] ${ARRAY_DOWNLOAD[$d]}"
+					exit 0
+				fi
+			fi
+		done
+	fi
+}
 
-if [ ! -f slack-desc ]; then
-  echo "No slack-desc found! Exiting..."
-  exit 1
-fi
 
-. $PRGNAM.info
-chmod +x ./$PRGNAM.SlackBuild
-PACKAGE=$(PRINT_PACKAGE_NAME="true" ./$PRGNAM.SlackBuild)
-sh ./$PRGNAM.SlackBuild
+build(){
+	bash ./$PRGNAM.SlackBuild
+}
 
-while [ "$1" ]; do
-  case $1 in
-  -i|--install)
-    installpkg /tmp/$PACKAGE
-    ;;
-    
-  -u|--upgrade)
-    upgradepkg /tmp/$PACKAGE
-    ;;
-  
-  -fr|--force-reinstall)
-    upgradepkg --reinstall --install-new /tmp/$PACKAGE
-    ;;
-    
-  -h|--help)
-    helper
-    ;;
-    
-  *)
-    echo "Unknown option"
-    helper
-    ;;
-  
-  esac
-  shift
-done
+install_package(){
+	installpkg $PKGS/$PACKAGE_NAME
+}
+
+upgrade_package(){
+	upgradepkg $PKGS/$PACKAGE_NAME
+}
+
+install_warn(){
+	installpkg --warn $PKGS/$PACKAGE_NAME
+}
+
+reinstall_package(){
+	upgradepkg --reinstall --install-new $PKGS/$PACKAGE_NAME
+}
+
+helper() {
+	echo "Usage: `basename $0` [options]"
+	echo "Options:"
+	echo "  -i,   --install           build and install package"
+	echo "  -u,   --upgrade           build and upgrade package"
+	echo "  -w,   --warn              warn if package overwrites files"
+	echo "  -r,   --rebuild           rebuild package"
+	echo "  -ri,  --reinstall         rebuild and reinstall package"
+	echo "  -h,   --help              print this help"
+}
+
+options(){
+	while [ "$1" ]; do
+		case $1 in
+			-i|--install)
+				SBO_INSTALL="yes"
+			;;
+  			-u|--upgrade)
+				SBO_UPGRADE="yes"
+			;;
+			-w|--warn)
+				SBO_WARN="yes"
+			;;
+			-r|--rebuild)
+				SBO_REBUILD="yes"
+			;;
+			-ri|--reinstall)
+				SBO_REINSTALL="yes"
+			;;
+			-h|--help)
+				helper
+				exit 0
+			;;
+			*)
+				echo "Unknown option $1"
+				exit 1
+			;;
+  		esac
+	shift
+	done
+}
+
+main(){
+	options "$@"
+
+	if [ "$SBO_DOWNLOAD" = "yes" ]; then
+		download_source
+	fi
+
+	if [ -f $PKGS/$PACKAGE_NAME ] && [ "$SBO_REBUILD" = "no" ] && [ "$SBO_REINSTALL" = "no" ]; then
+		echo "$PACKAGE_NAME exists. Exiting."
+		exit 0
+	else
+		download_source
+		check_md5sum_source
+		build
+	fi
+
+	if [ "$SBO_INSTALL" = "yes" ]; then
+		install_package
+		exit 0
+	fi
+
+	if [ "$SBO_REINSTALL" = "yes" ]; then
+		install_package
+		exit 0
+	fi
+
+	if [ "$SBO_UPGRADE" = "yes" ]; then
+		upgrade_package
+		exit 0
+	fi
+
+	if [ "$SBO_WARN" = "yes" ]; then
+		install_warn
+		exit 0
+	fi
+
+	if [ "$SBO_REINSTALL" = "yes" ]; then
+		reinstall_package
+		exit 0
+	fi
+
+	exit 0
+}
+
+main "$@"
+
+# End of file

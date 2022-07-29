@@ -6,6 +6,74 @@ if [ "$1" = "" ]; then
     exit 1
 fi
 
+update_md5sum(){
+	if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" = "UNTESTED" ]; then
+		for d in ${ARRAY_DOWNLOAD[@]}; do
+			MD5SUM_UPDATE=$(md5sum `basename $d` | awk '{print $1}')
+			MD5SUM_STACK+="$MD5SUM_UPDATE "
+		done
+  		ARRAY_MD5SUM=( $MD5SUM_STACK )
+  		ARRAY_LAST=${#ARRAY_MD5SUM[@]}
+		echo -e "$ARRAY_LAST MD5SUM sources, processing..."
+  		LAST="$(( $ARRAY_LAST-2 ))"
+		if [ "$ARRAY_LAST" = "0" ]; then
+			echo -e "No MD5SUM sources, skipping..."
+   		elif [ "$ARRAY_LAST" = "1" ]; then
+			sed -i '/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}' $PRGNAM.info
+			sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]}\"" $PRGNAM.info
+   		elif [ "$ARRAY_LAST" = "2" ]; then
+			sed -i '/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}' $PRGNAM.info
+			sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]} \\\\" $PRGNAM.info
+			sed -i "/DOWNLOAD_x86_64=/c${ARRAY_MD5SUM[-1]}\"\nDOWNLOAD_x86_64=" $PRGNAM.info
+   		elif [ "$ARRAY_LAST" -gt "2" ]; then
+			sed -i '/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}' $PRGNAM.info
+			sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]} \\\\" $PRGNAM.info
+			for e in ${ARRAY_MD5SUM[@]:1:$LAST}; do
+				sed -i "/^DOWNLOAD_x86_64=/i $e \\\\" $PRGNAM.info
+			done
+			sed -i "/DOWNLOAD_x86_64=/c${ARRAY_MD5SUM[-1]}\"\nDOWNLOAD_x86_64=" $PRGNAM.info
+		fi
+	fi
+
+	if [ ! -z "$DOWNLOAD_x86_64" ] && [ ! "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD_x86_64" = "UNTESTED" ]; then
+		for d in ${ARRAY_DOWNLOAD_x86_64[@]}; do
+			MD5SUM_x86_64_UPDATE=$(md5sum `basename $d` | awk '{print $1}')
+			MD5SUM_x86_64_STACK+="$MD5SUM_x86_64_UPDATE "
+		done
+		ARRAY_MD5SUM_x86_64=( $MD5SUM_x86_64_STACK )
+		ARRAY_x86_64_LAST=${#ARRAY_MD5SUM_x86_64[@]}
+		echo -e "$ARRAY_x86_64_LAST MD5SUM_x86_64 sources, processing..."
+		LAST_x86_64="$(( $ARRAY_x86_64_LAST-2 ))"
+		if [ "$ARRAY_x86_64_LAST" = "0" ]; then
+			echo -e "No MD5SUM_x86_64 sources, skipping..."
+		elif [ "$ARRAY_x86_64_LAST" = "1" ]; then
+			sed -i '/MD5SUM_x86_64=/,/REQUIRES=/{//!d}' $PRGNAM.info
+			sed -i "/MD5SUM_x86_64=/c\MD5SUM_x86_64=\"${ARRAY_MD5SUM_x86_64[0]}\"" $PRGNAM.info
+		elif [ "$ARRAY_x86_64_LAST" = "2" ]; then
+			sed -i '/MD5SUM_x86_64=/,/REQUIRES=/{//!d}' $PRGNAM.info
+			sed -i "/MD5SUM_x86_64=/c\MD5SUM_x86_64=\"${ARRAY_MD5SUM_x86_64[0]} \\\\" $PRGNAM.info
+			sed -i "/REQUIRES=/c${ARRAY_MD5SUM_x86_64[-1]}\"\nREQUIRES=" $PRGNAM.info
+		elif [ "$ARRAY_x86_64_LAST" -gt "2" ]; then
+			sed -i '/MD5SUM_x86_64=/,/REQUIRES=/{//!d}' $PRGNAM.info
+			sed -i "/MD5SUM_x86_64=/c\MD5SUM_x86_64=\"${ARRAY_MD5SUM_x86_64[0]} \\\\" $PRGNAM.info
+			for e in ${ARRAY_MD5SUM_x86_64[@]:1:$LAST_x86_64}; do
+				sed -i "/^REQUIRES=/i $e \\\\" $PRGNAM.info
+			done
+			sed -i "/REQUIRES=/c${ARRAY_MD5SUM[-1]}\"\nREQUIRES=" $PRGNAM.info
+		fi
+	fi
+}
+
+# 	if [ "$SBO_UPDATE_MD5SUM" = "yes" ]; then
+# 		update_md5sum
+# 		exit 0
+# 	fi
+
+# 	if [ "$SBO_DOWNLOAD_ONLY" = "yes" ]; then
+# 		download_source
+# 		exit 0
+# 	fi
+
 CONF=/etc/sboutils.conf
 TEMPLATES=/usr/share/sboutils/templates
 
@@ -99,3 +167,14 @@ while [ "$1" ]; do
   esac
   shift
 done
+
+
+# 			-d|--download)
+# 				SBO_DOWNLOAD="yes"
+# 			;;
+# 			-do|--download-only)
+# 				SBO_DOWNLOAD_ONLY="yes"
+# 			;;
+# 			-um|--update-md5)
+# 				SBO_UPDATE_MD5SUM="yes"
+# 			;;

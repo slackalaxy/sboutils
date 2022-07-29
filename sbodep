@@ -23,6 +23,8 @@ fi
 hoorex_array=( $hoorex )
 
 echo "--- dependencies: ([i] installed)"
+# https://www.baeldung.com/linux/reading-output-into-array
+# readarray -t installed < <(find /var/lib/pkgtools/packages/ -name ${PACKAGE_NAME%.*})
 
 list_deps(){
 for d in ${hoorex_array[@]}; do
