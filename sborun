@@ -21,6 +21,7 @@ SBO_REBUILD="no"
 SBO_REINSTALL="no"
 SBO_DOWNLOAD="no"
 SBO_CHECK_MD5SUM="no"
+SBO_DOWNLOAD_NO_CERTIFICATE="no"
 
 check_input(){
 	if [ ! -f $PRGNAM.SlackBuild ]; then
@@ -55,12 +56,17 @@ package_installed(){
 }
 
 download_source(){
+
+	if [ $SBO_DOWNLOAD_NO_CERTIFICATE = "yes" ]; then
+		cert="--no-check-certificate"
+	fi
+
 	if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" = "UNTESTED" ]; then
 		for d in ${ARRAY_DOWNLOAD[@]}; do
 			if [ -f `basename $d` ]; then
 				echo "`basename $d`"
 			else
-				wget -c $d
+				wget $cert -c $d
 			fi
 		done
 	fi
@@ -69,7 +75,7 @@ download_source(){
 			if [ -f `basename $d` ]; then
 				echo "`basename $d`"
 			else
-				wget -c $d
+				wget $cert -c $d
 			fi
 		done
 	fi
@@ -86,7 +92,7 @@ check_md5sum_source(){
 			elif [ -f "$NAME_d" ]; then
 				MD5SUM_d=$(md5sum $NAME_d | awk '{print $1}')
 				if [ "$MD5SUM_d" = "${ARRAY_MD5SUM[$d]}" ]; then
-					echo "[m] $NAME_d"
+					echo "[m] $MD5SUM_d $NAME_d"
 				elif [ "$MD5SUM_d" != "${ARRAY_MD5SUM[$d]}" ]; then
 					echo "[e] ${ARRAY_DOWNLOAD[$d]}"
 					exit 0
@@ -126,6 +132,7 @@ helper() {
 	echo "  -r,   --rebuild           rebuild package"
 	echo "  -ri,  --reinstall         rebuild and reinstall package"
 	echo "  -do,  --download-only     download sources and exit"
+	echo "  -ns,  --no-certificate    do not check download certificate"
 	echo "  -cm,  --check-md5         check sources md5sum and exit"
 	echo "  -h,   --help              print this help"
 }
@@ -150,6 +157,9 @@ options(){
 			;;
 			-do|--download-only)
 				SBO_DOWNLOAD="yes"
+			;;
+			-ns|--no-certificate)
+				SBO_DOWNLOAD_NO_CERTIFICATE="yes"
 			;;
 			-cm|--check-md5)
 				SBO_CHECK_MD5SUM="yes"
