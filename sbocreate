@@ -14,18 +14,10 @@ SBO_TEMPLATE_RUBYGEM="no"
 SBO_TEMPLATE_DOINST="no"
 SBO_TEMPLATE_DOUNINST="no"
 SBO_TEMPLATE_DESKTOP="no"
-SBO_TEMPLATE_OVERWRITE="no"
-SBO_UPDATE_MD5SUM="no"
 
-check_input_files_missing(){
-	if [ ! -f $DIRNAM.SlackBuild ]; then
-		echo "$DIRNAM.SlackBuild does not exist. Exiting."
-		exit 0
-	elif [ ! -f $DIRNAM.info ]; then
-		echo "$DIRNAM.info does not exist. Exiting."
-		exit 0
-	elif [ ! -f slack-desc ]; then
-		echo "slack-desk does not exist. Exiting."
+check_if_file_exists(){
+	if [ -f "$1" ]; then
+		echo "A file called $1 already exists in $DIRNAM."
 		exit 0
 	fi
 }
@@ -48,28 +40,13 @@ determine_template(){
 	fi
 }
 
-copy_compulsory_templates(){
-	cp /usr/share/sboutils/templates/README README
-	cp /usr/share/sboutils/templates/$TEMPLATE.SlackBuild $DIRNAM.SlackBuild
-	cp /usr/share/sboutils/templates/template.info $DIRNAM.info
-	cp /usr/share/sboutils/templates/slack-desc slack-desc
-}
-
-copy_doinst_template(){
-	cp /usr/share/sboutils/templates/doinst.sh doinst.sh
-}
-
-copy_douninst_template(){
-	cp /usr/share/sboutils/templates/douninst.sh douninst.sh
-}
-
-copy_desktop_template(){
-	cp /usr/share/sboutils/templates/template.desktop $DIRNAM.desktop
+copy_template_file(){
+	cp /usr/share/sboutils/templates/${1} ${2}
 }
 
 prepare_slackbuild_template(){
 	YEAR=$(date +"%Y")
-	sed -i "s:appname:$DIRNAM:g" $PRGNAM.SlackBuild
+	sed -i "s:appname:$DIRNAM:g" $DIRNAM.SlackBuild
 	sed -i "s:<year>:$YEAR:" $DIRNAM.SlackBuild
 	sed -i "s:<you>:$MAINTAINER:" $DIRNAM.SlackBuild
 	sed -i "s:<where you live>:$LOCATION:" $DIRNAM.SlackBuild
@@ -95,72 +72,6 @@ prepare_info_template(){
 	sed -i "s:email address of author:$EMAIL:" $DIRNAM.info
 }
 
-load_info(){
-	. $PRGNAM.info
-	if [ "$DIRNAM" != "$PRGNAM" ]; then
-		echo "SlackBuild folder name is different than PRGNAM! Exiting..."
-		exit 1
-	fi
-}
-
-update_md5sum(){
-	if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" = "UNTESTED" ]; then
-		for d in ${ARRAY_DOWNLOAD[@]}; do
-			MD5SUM_UPDATE=$(md5sum `basename $d` | awk '{print $1}')
-			MD5SUM_STACK+="$MD5SUM_UPDATE "
-		done
-  		ARRAY_MD5SUM=( $MD5SUM_STACK )
-  		ARRAY_LAST=${#ARRAY_MD5SUM[@]}
-		echo -e "$ARRAY_LAST MD5SUM sources, processing..."
-  		LAST="$(( $ARRAY_LAST-2 ))"
-		if [ "$ARRAY_LAST" = "0" ]; then
-			echo -e "No MD5SUM sources, skipping..."
-   		elif [ "$ARRAY_LAST" = "1" ]; then
-			sed -i '/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}' $PRGNAM.info
-			sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]}\"" $PRGNAM.info
-   		elif [ "$ARRAY_LAST" = "2" ]; then
-			sed -i '/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}' $PRGNAM.info
-			sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]} \\\\" $PRGNAM.info
-			sed -i "/DOWNLOAD_x86_64=/c${ARRAY_MD5SUM[-1]}\"\nDOWNLOAD_x86_64=" $PRGNAM.info
-   		elif [ "$ARRAY_LAST" -gt "2" ]; then
-			sed -i '/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}' $PRGNAM.info
-			sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]} \\\\" $PRGNAM.info
-			for e in ${ARRAY_MD5SUM[@]:1:$LAST}; do
-				sed -i "/^DOWNLOAD_x86_64=/i $e \\\\" $PRGNAM.info
-			done
-			sed -i "/DOWNLOAD_x86_64=/c${ARRAY_MD5SUM[-1]}\"\nDOWNLOAD_x86_64=" $PRGNAM.info
-		fi
-	fi
-
-	if [ ! -z "$DOWNLOAD_x86_64" ] && [ ! "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD_x86_64" = "UNTESTED" ]; then
-		for d in ${ARRAY_DOWNLOAD_x86_64[@]}; do
-			MD5SUM_x86_64_UPDATE=$(md5sum `basename $d` | awk '{print $1}')
-			MD5SUM_x86_64_STACK+="$MD5SUM_x86_64_UPDATE "
-		done
-		ARRAY_MD5SUM_x86_64=( $MD5SUM_x86_64_STACK )
-		ARRAY_x86_64_LAST=${#ARRAY_MD5SUM_x86_64[@]}
-		echo -e "$ARRAY_x86_64_LAST MD5SUM_x86_64 sources, processing..."
-		LAST_x86_64="$(( $ARRAY_x86_64_LAST-2 ))"
-		if [ "$ARRAY_x86_64_LAST" = "0" ]; then
-			echo -e "No MD5SUM_x86_64 sources, skipping..."
-		elif [ "$ARRAY_x86_64_LAST" = "1" ]; then
-			sed -i '/MD5SUM_x86_64=/,/REQUIRES=/{//!d}' $PRGNAM.info
-			sed -i "/MD5SUM_x86_64=/c\MD5SUM_x86_64=\"${ARRAY_MD5SUM_x86_64[0]}\"" $PRGNAM.info
-		elif [ "$ARRAY_x86_64_LAST" = "2" ]; then
-			sed -i '/MD5SUM_x86_64=/,/REQUIRES=/{//!d}' $PRGNAM.info
-			sed -i "/MD5SUM_x86_64=/c\MD5SUM_x86_64=\"${ARRAY_MD5SUM_x86_64[0]} \\\\" $PRGNAM.info
-			sed -i "/REQUIRES=/c${ARRAY_MD5SUM_x86_64[-1]}\"\nREQUIRES=" $PRGNAM.info
-		elif [ "$ARRAY_x86_64_LAST" -gt "2" ]; then
-			sed -i '/MD5SUM_x86_64=/,/REQUIRES=/{//!d}' $PRGNAM.info
-			sed -i "/MD5SUM_x86_64=/c\MD5SUM_x86_64=\"${ARRAY_MD5SUM_x86_64[0]} \\\\" $PRGNAM.info
-			for e in ${ARRAY_MD5SUM_x86_64[@]:1:$LAST_x86_64}; do
-				sed -i "/^REQUIRES=/i $e \\\\" $PRGNAM.info
-			done
-			sed -i "/REQUIRES=/c${ARRAY_MD5SUM[-1]}\"\nREQUIRES=" $PRGNAM.info
-		fi
-	fi
-}
-
 helper() {
 	echo "Run `basename $0` from within the SlackBuild folder."
 	echo "Usage: `basename $0` [template] [options]"
@@ -170,8 +81,6 @@ helper() {
 	echo "  -di,  --doinst            copy doinst.sh file"
 	echo "  -du,  --douninst          copy douninst.sh file"
 	echo "  -de,  --desktop           copy template.desktop file"
-	echo "  -ow,  --overwrite         overwrite template files"
-	echo "  -um,  --update-md5        update sources md5sum"
 	echo "  -h,   --help              print this help"
 }
 
@@ -208,12 +117,6 @@ options(){
 			-de|--desktop)
 				SBO_TEMPLATE_DESKTOP="yes"
 			;;
-			-ow|--overwrite)
-				SBO_TEMPLATE_OVERWRITE="yes"
-			;;
-			-um|--update-md5)
-				SBO_UPDATE_MD5SUM="yes"
-			;;
 			-h|--help)
 				helper
 				exit 0
@@ -229,32 +132,40 @@ options(){
 
 main(){
 	options "$@"
-	
+
 	if [ "$SBO_TEMPLATE_DOINST" = "yes" ]; then
-		copy_doinst_template
+		check_if_file_exists doinst.sh
+		copy_template_file doinst.sh doinst.sh
 	fi
 	
 	if [ "$SBO_TEMPLATE_DOUNINST" = "yes" ]; then
-		copy_douninst_template
+		check_if_file_exists douninst.sh
+		copy_template_file douninst.sh douninst.sh
 	fi
 	
 	if [ "$SBO_TEMPLATE_DESKTOP" = "yes" ]; then
-		copy_desktop_template
+		check_if_file_exists $DIRNAM.desktop
+		copy_template_file template.desktop $DIRNAM.desktop
 	fi
 		
 	determine_template
 	if [ ! -z "$TEMPLATE" ]; then
-		copy_compulsory_templates
+		# check if they exist, then copy
+		check_if_file_exists README
+		copy_template_file README README
+		check_if_file_exists $DIRNAM.SlackBuild
+		copy_template_file $TEMPLATE.SlackBuild $DIRNAM.SlackBuild
+		check_if_file_exists $DIRNAM.info
+		copy_template_file template.info $DIRNAM.info
+		check_if_file_exists slack-desc
+		copy_template_file slack-desc slack-desc
+		# prepare templates
 		prepare_slackbuild_template
 		prepare_slackdesc_template
 		prepare_info_template
+		
+		exit 0
 	fi
-	
-	if [ "$SBO_CHECK_MD5SUM" = "yes" ]; then
-		load_info
-		check_input_files_missing
-		update_md5sum
-	fi 
 	
 	exit 0
 }
