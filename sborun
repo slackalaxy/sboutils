@@ -11,6 +11,7 @@ SBO_REBUILD="no"
 SBO_REINSTALL="no"
 SBO_DOWNLOAD="no"
 SBO_CHECK_MD5SUM="no"
+SBO_UPDATE_MD5SUM="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
 
 check_input_files_missing(){
@@ -136,7 +137,7 @@ reinstall_package(){
 	upgradepkg --reinstall --install-new $PKGS/$PACKAGE_NAME
 }
 
-update_md5sum(){
+update_md5sum_source(){
 	if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" = "UNTESTED" ]; then
 		for d in ${ARRAY_DOWNLOAD[@]}; do
 			MD5SUM_UPDATE=$(md5sum `basename $d` | awk '{print $1}')
@@ -236,6 +237,9 @@ options(){
 			-cm|--check-md5)
 				SBO_CHECK_MD5SUM="yes"
 			;;
+			-um|--update-md5)
+				SBO_UPDATE_MD5SUM="yes"
+			;;
 			-h|--help)
 				helper
 				exit 0
@@ -265,6 +269,11 @@ main(){
 	
 	if [ $SBO_CHECK_MD5SUM = "yes" ]; then
 		check_md5sum_source
+		exit 0
+	fi
+	
+	if [ $SBO_UPDATE_MD5SUM = "yes" ]; then
+		update_md5sum_source
 		exit 0
 	fi
 	
