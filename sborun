@@ -137,26 +137,34 @@ reinstall_package(){
 }
 
 update_md5sum_source(){
-	if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" = "UNTESTED" ]; then
-		for d in ${ARRAY_DOWNLOAD[@]}; do
+	# make things more readable in this mess...
+	local -n local_array_download=$2
+	startRow=$3
+	endRow=$4
+	
+	if [ ! -z "$1" ] && [ ! "$1" = "UNSUPPORTED" ] && [ ! "$1" = "UNTESTED" ]; then
+		
+		for d in ${local_array_download[@]}; do
 			MD5SUM_UPDATE=$(md5sum `basename $d` | awk '{print $1}')
 			MD5SUM_STACK+="$MD5SUM_UPDATE "
 		done
-  		ARRAY_MD5SUM=( $MD5SUM_STACK )
+  		
+		ARRAY_MD5SUM=( $MD5SUM_STACK )
+		
   		ARRAY_LAST=${#ARRAY_MD5SUM[@]}
 		echo -e "$ARRAY_LAST MD5SUM sources, processing..."
   		LAST="$(( $ARRAY_LAST-2 ))"
 		if [ "$ARRAY_LAST" = "0" ]; then
 			echo -e "No MD5SUM sources, skipping..."
    		elif [ "$ARRAY_LAST" = "1" ]; then
-			sed -i '/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}' $PRGNAM.info
+			sed -i "/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}" $PRGNAM.info
 			sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]}\"" $PRGNAM.info
    		elif [ "$ARRAY_LAST" = "2" ]; then
-			sed -i '/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}' $PRGNAM.info
+			sed -i "/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}" $PRGNAM.info
 			sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]} \\\\" $PRGNAM.info
 			sed -i "/DOWNLOAD_x86_64=/c${ARRAY_MD5SUM[-1]}\"\nDOWNLOAD_x86_64=" $PRGNAM.info
    		elif [ "$ARRAY_LAST" -gt "2" ]; then
-			sed -i '/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}' $PRGNAM.info
+			sed -i "/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}" $PRGNAM.info
 			sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]} \\\\" $PRGNAM.info
 			for e in ${ARRAY_MD5SUM[@]:1:$LAST}; do
 				sed -i "/^DOWNLOAD_x86_64=/i $e \\\\" $PRGNAM.info
@@ -276,7 +284,8 @@ main(){
 	fi
 	
 	if [ $SBO_UPDATE_MD5SUM = "yes" ]; then
-		update_md5sum_source
+		update_md5sum_source DOWNLOAD ARRAY_DOWNLOAD MD5SUM DOWNLOAD_x86_64
+		update_md5sum_source DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64 MD5SUM_x86_64 REQUIRES
 		exit 0
 	fi
 	
