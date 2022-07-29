@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PRGNAM=$(basename $PWD)
+DIRNAM=$(basename $PWD)
 
 . /etc/sboutils.conf
 
@@ -13,12 +13,12 @@ SBO_DOWNLOAD="no"
 SBO_CHECK_MD5SUM="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
 
-check_input_files(){
-	if [ ! -f $PRGNAM.SlackBuild ]; then
-		echo "$PRGNAM.SlackBuild does not exist. Exiting."
+check_input_files_missing(){
+	if [ ! -f $DIRNAM.SlackBuild ]; then
+		echo "$DIRNAM.SlackBuild does not exist. Exiting."
 		exit 1
-	elif [ ! -f $PRGNAM.info ]; then
-		echo "$PRGNAM.info does not exist. Exiting."
+	elif [ ! -f $DIRNAM.info ]; then
+		echo "$DIRNAM.info does not exist. Exiting."
 		exit 1
 	elif [ ! -f slack-desc ]; then
 		echo "slack-desk does not exist. Exiting."
@@ -28,6 +28,10 @@ check_input_files(){
 
 load_info(){
 	. $PRGNAM.info
+	if [ "$DIRNAM" != "$PRGNAM" ]; then
+		echo "SlackBuild folder name is different than PRGNAM! Exiting..."
+		exit 1
+	fi
 }
 
 does_package_exist(){
@@ -190,7 +194,7 @@ options(){
 main(){
 	options "$@"
 
-	check_input_files
+	check_input_files_missing
 	load_info
 	does_package_exist
 	load_sources
