@@ -22,6 +22,26 @@ SBO_REINSTALL="no"
 SBO_DOWNLOAD="no"
 SBO_CHECK_MD5SUM="no"
 
+check_input(){
+	if [ ! -f $PRGNAM.SlackBuild ]; then
+		echo "$PRGNAM.SlackBuild does not exist. Exiting."
+		exit 1
+	elif [ ! -f $PRGNAM.info ]; then
+		echo "$PRGNAM.info does not exist. Exiting."
+		exit 1
+	elif [ ! -f slack-desc ]; then
+		echo "slack-desk does not exist. Exiting."
+		exit 1
+	fi
+}
+
+check_installpkg(){
+	if [ ! -x "$(command -v installpkg)" ] || [ ! -x "$(command -v upgradepkg)" ]; then
+		echo "<installpkg> and/or <upgradepkg> not in path/executable! Exiting."
+		exit 1
+	fi
+}
+
 package_exists(){
 	if [ -f $PKGS/$PACKAGE_NAME ]; then
 		echo "Package $PACKAGE_NAME exists in $PKGS"
@@ -102,9 +122,11 @@ helper() {
 	echo "Options:"
 	echo "  -i,   --install           build and install package"
 	echo "  -u,   --upgrade           build and upgrade package"
-	echo "  -w,   --warn              warn if package overwrites files"
+	echo "  -w,   --warn              warn if package will overwrite files"
 	echo "  -r,   --rebuild           rebuild package"
 	echo "  -ri,  --reinstall         rebuild and reinstall package"
+	echo "  -do,  --download-only     download sources and exit"
+	echo "  -cm,  --check-md5         check sources md5sum and exit"
 	echo "  -h,   --help              print this help"
 }
 
@@ -147,6 +169,8 @@ options(){
 
 main(){
 	options "$@"
+	
+	check_input
 
 	if [ $SBO_DOWNLOAD = "yes" ]; then
 		download_source
@@ -157,6 +181,8 @@ main(){
 		check_md5sum_source
 		exit 0
 	fi
+	
+	check_installpkg
 	
 	if [ -f $PKGS/$PACKAGE_NAME ] || [ ! -z "$PACKAGE_INST" ] && [ "$SBO_REBUILD" = "no" ] && [ "$SBO_REINSTALL" = "no" ]; then
 		package_exists
