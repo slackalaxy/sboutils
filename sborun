@@ -1,11 +1,14 @@
 #!/bin/bash
 
 PRGNAM=$(basename $PWD)
+
 . /etc/sboutils.conf
 . $PRGNAM.info
 
 PACKAGE_NAME=$(PRINT_PACKAGE_NAME="true" bash ./$PRGNAM.SlackBuild)
+PACKAGE_INST=$(find /var/lib/pkgtools/packages/ -name "${PACKAGE_NAME%.*}")
 
+# Load sources and their md5sums as arrays
 read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
 read -r -d '' -a ARRAY_DOWNLOAD_x86_64 < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
 read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
@@ -16,13 +19,18 @@ SBO_UPGRADE="no"
 SBO_WARN="no"
 SBO_REBUILD="no"
 SBO_REINSTALL="no"
+SBO_DOWNLOAD="no"
+SBO_CHECK_MD5SUM="no"
 
-is_package_installed(){
-	pkg=$( find /var/lib/pkgtools/packages/ -name "${PACKAGE_NAME%.*}" )
-	if [ ! -z "$pkg" ]; then
-		PKG_INSTALLED="yes"
-	else
-		PKG_INSTALLED="no"
+package_exists(){
+	if [ -f $PKGS/$PACKAGE_NAME ]; then
+		echo "Package $PACKAGE_NAME exists in $PKGS"
+	fi
+}
+
+package_installed(){
+	if [ ! -z $PACKAGE_INST ]; then
+		echo "Package $PACKAGE_NAME installed"
 	fi
 }
 
@@ -118,6 +126,12 @@ options(){
 			-ri|--reinstall)
 				SBO_REINSTALL="yes"
 			;;
+			-do|--download-only)
+				SBO_DOWNLOAD="yes"
+			;;
+			-cm|--check-md5)
+				SBO_CHECK_MD5SUM="yes"
+			;;
 			-h|--help)
 				helper
 				exit 0
@@ -134,12 +148,20 @@ options(){
 main(){
 	options "$@"
 
-	if [ "$SBO_DOWNLOAD" = "yes" ]; then
+	if [ $SBO_DOWNLOAD = "yes" ]; then
 		download_source
+		exit 0
 	fi
-
-	if [ -f $PKGS/$PACKAGE_NAME ] && [ "$SBO_REBUILD" = "no" ] && [ "$SBO_REINSTALL" = "no" ]; then
-		echo "$PACKAGE_NAME exists. Exiting."
+	
+	if [ $SBO_CHECK_MD5SUM = "yes" ]; then
+		check_md5sum_source
+		exit 0
+	fi
+	
+	if [ -f $PKGS/$PACKAGE_NAME ] || [ ! -z "$PACKAGE_INST" ] && [ "$SBO_REBUILD" = "no" ] && [ "$SBO_REINSTALL" = "no" ]; then
+		package_exists
+		package_installed
+		echo "Use -r or -ri options to rebuild."
 		exit 0
 	else
 		download_source
