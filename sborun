@@ -28,7 +28,7 @@ check_input_files_missing(){
 }
 
 load_info(){
-	. $PRGNAM.info
+	. $DIRNAM.info
 	if [ "$DIRNAM" != "$PRGNAM" ]; then
 		echo "SlackBuild folder name is different than PRGNAM! Exiting..."
 		exit 1
@@ -69,22 +69,15 @@ package_installed(){
 }
 
 download_source(){
-
+	# some sources (e.g. geneconv) need this to be downloaded
 	if [ $SBO_DOWNLOAD_NO_CERTIFICATE = "yes" ]; then
 		cert="--no-check-certificate"
 	fi
-
-	if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" = "UNTESTED" ]; then
-		for d in ${ARRAY_DOWNLOAD[@]}; do
-			if [ -f `basename $d` ]; then
-				echo "`basename $d`"
-			else
-				wget $cert -c $d
-			fi
-		done
-	fi
-	if [ ! -z "$DOWNLOAD_x86_64" ] && [ ! "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD_x86_64" = "UNTESTED" ]; then
-		for d in ${ARRAY_DOWNLOAD_x86_64[@]}; do
+	
+	# pass the array to the function later
+	local -n local_array_download=$2
+	if [ ! -z "$1" ] && [ ! "$1" = "UNSUPPORTED" ] && [ ! "$1" = "UNTESTED" ]; then
+		for d in ${local_array_download[@]}; do
 			if [ -f `basename $d` ]; then
 				echo "`basename $d`"
 			else
@@ -95,20 +88,23 @@ download_source(){
 }
 
 check_md5sum_source(){
-	if [ ! -z "$DOWNLOAD" ] && [ ! "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD" = "UNTESTED" ]; then
-		echo "---- check md5sum ([m] match, [e] mismatch, [ ] missing)"
+	if [ ! -z "$1" ] && [ ! "$1" = "UNSUPPORTED" ] && [ ! "$1" = "UNTESTED" ]; then
+		
+		local -n local_array_download=$2
+		local -n local_array_md5sum=$3
+		
 		# determine position in array
-		for (( d=0; d<${#ARRAY_DOWNLOAD[@]}; d++ )); do
-			NAME_d=$(basename ${ARRAY_DOWNLOAD[$d]})
+		for (( d=0; d<${#local_array_download[@]}; d++ )); do
+			NAME_d=$(basename ${local_array_download[$d]})
 			if [ ! -f "$NAME_d" ]; then
-				echo "[ ] ${ARRAY_DOWNLOAD[$d]}"
+				echo "[ ] ${local_array_download[$d]}"
 				exit 0
 			elif [ -f "$NAME_d" ]; then
 				MD5SUM_d=$(md5sum $NAME_d | awk '{print $1}')
-				if [ "$MD5SUM_d" = "${ARRAY_MD5SUM[$d]}" ]; then
+				if [ "$MD5SUM_d" = "${local_array_md5sum[$d]}" ]; then
 					echo "[m] $MD5SUM_d $NAME_d"
-				elif [ "$MD5SUM_d" != "${ARRAY_MD5SUM[$d]}" ]; then
-					echo "[e] ${ARRAY_DOWNLOAD[$d]}"
+				elif [ "$MD5SUM_d" != "${local_array_md5sum[$d]}" ]; then
+					echo "[e] ${local_array_download[$d]}"
 					exit 0
 				fi
 			fi
@@ -116,6 +112,9 @@ check_md5sum_source(){
 	fi
 }
 
+title_md5sum(){
+		echo "--- check md5sum ([m] match, [e] mismatch, [ ] missing)"
+}
 
 build(){
 	bash ./$PRGNAM.SlackBuild
@@ -207,6 +206,7 @@ helper() {
 	echo "  -d,   --download          download sources and exit"
 	echo "  -nc,  --no-certificate    do not check download certificate"
 	echo "  -cm,  --check-md5         check sources md5sum and exit"
+	echo "  -um,  --update-md5        update sources md5sum and exit"
 	echo "  -h,   --help              print this help"
 }
 
@@ -263,12 +263,15 @@ main(){
 
 	# functions to execute pre-build
 	if [ $SBO_DOWNLOAD = "yes" ]; then
-		download_source
+		download_source DOWNLOAD ARRAY_DOWNLOAD
+		download_source DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64
 		exit 0
 	fi
 	
 	if [ $SBO_CHECK_MD5SUM = "yes" ]; then
-		check_md5sum_source
+		title_md5sum
+		check_md5sum_source DOWNLOAD ARRAY_DOWNLOAD ARRAY_MD5SUM
+		check_md5sum_source DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
 		exit 0
 	fi
 	
