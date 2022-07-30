@@ -17,7 +17,7 @@ SBO_TEMPLATE_DESKTOP="no"
 
 is_imput_empty(){
 	if [ "$1" = "" ]; then
-		echo "Input is empty. Use -h for help"
+		echo "Input is empty. To view options, use `basename $0` --help"
 		exit 1
 	fi
 }

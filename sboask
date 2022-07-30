@@ -3,9 +3,16 @@
 . /etc/sboutils.conf
 
 SBO_INFO="no"
-SBO_DEP="no"
+SBO_DEPS="no"
 SBO_DEPENDENTS="no"
 SBO_FIND="no"
+
+is_imput_empty(){
+	if [ "$1" = "" ]; then
+		echo "Input is empty. To view options, use `basename $0` help"
+		exit 1
+	fi
+}
 
 check_location(){
 	if [ "$2" = "strict" ]; then
@@ -15,6 +22,7 @@ check_location(){
 	fi
 	
 	LOCATION_array=( $LOCATION )
+	
 	if [ "${#LOCATION_array[@]}" = "0" ] ; then
 		echo "$1 not found on SlackBuilds.org! Exiting..."
 		exit 1
@@ -69,6 +77,57 @@ display_requires(){
 	done
 }
 
+hoorex_array(){
+	if [ "$2" = "DEPS" ]; then
+		hoorex=$(hoorex -r "$1")
+	else
+		hoorex=$(hoorex "$1")
+	fi
+		
+	if [ -z "$hoorex" ]; then
+		echo "$1 not found at SlackBuilds.org"
+		exit 1
+	fi
+
+	hoorex_array=( $hoorex )
+}
+
+dependencies_title(){
+	echo "--- dependencies: ([i] installed, [ ] not installed)"
+}
+
+hoorex_output(){
+	for d in ${hoorex_array[@]}; do
+		pkg=""
+  
+		# check if dependency ($d) is among installed pkgs
+		installed=$(find /var/lib/pkgtools/packages/ -name "${d}-*" )
+		installed_array=( $installed )
+  
+		if [ ! -z "$installed" ]; then
+			for i in ${installed_array[@]}; do
+			# Name can be tricky, think of <lignome> and <libgnome-keyring>...
+			# So collect here all names that matched the search, removing the
+			# full path and trimming the stuff separated by the last 3 dashes
+			# in the package name.
+				pkg+=$(echo "`basename ${i%-*-*-*}` ")
+			done
+			
+			pkg_array=( $pkg )
+    
+			# search if array contains element or not
+			# https://stackoverflow.com/a/15394738
+			if [[ " ${pkg_array[*]} " =~ " ${d} " ]]; then
+				echo "[i] $d"
+			elif [[ ! " ${pkg_array[*]} " =~ " ${d} " ]]; then
+				echo "[ ] $d"
+			fi
+		elif [ -z "$installed" ]; then
+			echo "[ ] $d"
+		fi
+	done
+}
+
 helper() {
 	echo "Usage: `basename $0` [task] SlackBuild"
 	echo "Tasks:"
@@ -85,7 +144,7 @@ options(){
 			SBO_INFO="yes"
 		;;
 		dep)
-			SBO_DEP="yes"
+			SBO_DEPS="yes"
 		;;
 		dependents)
 			SBO_DEPENDENTS="yes"
@@ -108,18 +167,38 @@ options(){
 main(){
 	options "$1" "$2"
 	
-	if [ $SBO_INFO = "yes" ]; then
+	# $2 refers to position, e.g.: sboask info $2 (aka slackbuild),
+	# but comes first after the function, so it is referred as $1
+	# inside the corresponding functions! A note to my stupid self.
+	if [ "$SBO_INFO" = "yes" ]; then
 		check_location "$2" strict
 		display_info "$2"
 		display_requires "$2"
 		exit 0
 	fi
-	if [ $SBO_FIND = "yes" ]; then
+	if [ "$SBO_FIND" = "yes" ]; then
 		check_location "$2" nonstrict
-		location_search "$2" 
+		location_search
+		exit 0
+	fi
+	if [ "$SBO_DEPS" = "yes" ]; then
+		check_location "$2" strict
+		hoorex_array "$2" DEPS
+		dependencies_title
+		hoorex_output
+		exit 0
+	fi
+	if [ "$SBO_DEPENDENTS" = "yes" ]; then
+		check_location "$2" strict
+		hoorex_array "$2" DEPENDENTS
+		dependencies_title
+		hoorex_output
 		exit 0
 	fi
 	exit 0
 }
 
+is_imput_empty "$1"
 main "$1" "$2"
+
+# End of file
