@@ -1,6 +1,11 @@
 #!/bin/bash
 
 DIRNAM=$(basename $PWD)
+. $DIRNAM.info
+if [ "$DIRNAM" != "$PRGNAM" ]; then
+	echo "SlackBuild folder name is different than PRGNAM!"
+	exit 1
+fi
 
 . /etc/sboutils.conf
 
@@ -14,15 +19,35 @@ SBO_CHECK_MD5SUM="no"
 SBO_UPDATE_MD5SUM="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
 
-check_input_files_missing(){
-	if [ ! -f $DIRNAM.SlackBuild ]; then
-		echo "$DIRNAM.SlackBuild does not exist. Exiting."
+check_folder() {
+	if [ ! -d $1 ]; then
+		echo "Folder '$1' does not exist."
 		exit 1
-	elif [ ! -f $DIRNAM.info ]; then
-		echo "$DIRNAM.info does not exist. Exiting."
+	elif [ ! -w $1 ]; then
+		echo "Folder '$1' not writable."
 		exit 1
-	elif [ ! -f slack-desc ]; then
-		echo "slack-desk does not exist. Exiting."
+	elif [ ! -x $1 ] || [ ! -r $1 ]; then
+		echo "Folder '$1' not readable."
+		exit 1
+	fi
+}
+
+check_files() {
+	if [ ! -f $1 ]; then
+		echo "File $1 does not exist."
+		exit 1
+	elif [ -e $1 ] && [ ! -w $1 ]; then
+		echo "File $1 is not writable."
+		exit 1
+	elif [ ! -r $1 ]; then
+		echo "File $1 is not readable."
+		exit 1
+	fi
+}
+
+check_installpkg(){
+	if [ ! -x "$(command -v installpkg)" ] || [ ! -x "$(command -v upgradepkg)" ]; then
+		echo "<installpkg> and/or <upgradepkg> not in path/executable! Exiting."
 		exit 1
 	fi
 }
@@ -30,8 +55,16 @@ check_input_files_missing(){
 load_info(){
 	. $DIRNAM.info
 	if [ "$DIRNAM" != "$PRGNAM" ]; then
-		echo "SlackBuild folder name is different than PRGNAM! Exiting..."
+		echo "SlackBuild folder name is different than PRGNAM!"
 		exit 1
+	fi
+}
+
+check_additional_files(){
+	additional=$(grep "$1" $PRGNAM.SlackBuild)
+	
+	if [ ! -z "$additional" ]; then
+		check_files $1
 	fi
 }
 
@@ -47,13 +80,6 @@ load_sources(){
 	read -r -d '' -a ARRAY_DOWNLOAD_x86_64 < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
 	read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
 	read -r -d '' -a ARRAY_MD5SUM_x86_64 < <( echo "$MD5SUM_x86_64" && printf '\0' )
-}
-
-check_installpkg(){
-	if [ ! -x "$(command -v installpkg)" ] || [ ! -x "$(command -v upgradepkg)" ]; then
-		echo "<installpkg> and/or <upgradepkg> not in path/executable! Exiting."
-		exit 1
-	fi
 }
 
 package_exists(){
@@ -76,11 +102,12 @@ download_source(){
 	
 	# pass the array to the function later
 	local -n local_array_download=$2
-	if [ ! -z "$1" ] && [ ! "$1" = "UNSUPPORTED" ] && [ ! "$1" = "UNTESTED" ]; then
+	if [ ! -z "$1" ] && [ "$1" != "UNSUPPORTED" ] && [ "$1" != "UNTESTED" ]; then
 		for d in ${local_array_download[@]}; do
 			if [ -f `basename $d` ]; then
-				echo "`basename $d`"
+				echo "[d] `basename $d`"
 			else
+				echo "[ ] `basename $d`"
 				wget $cert -c $d
 			fi
 		done
@@ -88,7 +115,7 @@ download_source(){
 }
 
 check_md5sum_source(){
-	if [ ! -z "$1" ] && [ ! "$1" = "UNSUPPORTED" ] && [ ! "$1" = "UNTESTED" ]; then
+	if [ ! -z "$1" ] && [ "$1" != "UNSUPPORTED" ] && [ "$1" != "UNTESTED" ]; then
 		
 		local -n local_array_download=$2 # ARRAY_DOWNLOAD(_x86_64)
 		local -n local_array_md5sum=$3 # ARRAY_MD5SUM(_x86_64)
@@ -143,13 +170,15 @@ update_md5sum_source(){
 		done
 	fi
 }
-
+download_source_title(){
+	echo "--- download ([d] source already downloaded, [ ] source missing)"
+}
 check_md5sum_source_title(){
-		echo "--- check md5sum ([m] match, [e] mismatch, [ ] source missing)"
+	echo "--- check md5sum ([m] match, [e] mismatch, [ ] source missing)"
 }
 
 update_md5sum_source_title(){
-		echo "--- update md5sum ([m] match, [u] update, [ ] source missing)"
+	echo "--- update md5sum ([m] match, [u] update, [ ] source missing)"
 }
 
 build(){
@@ -234,29 +263,34 @@ options(){
 main(){
 	options "$@"
 
-	check_input_files_missing
 	load_info
+	check_files $PRGNAM.SlackBuild
+	check_files $PRGNAM.info
+	check_files slack-desc
+	check_additional_files doinst.sh
+	check_additional_files douninst.sh
 	does_package_exist
 	load_sources
 
 	# functions to execute pre-build
 	if [ $SBO_DOWNLOAD = "yes" ]; then
-		download_source DOWNLOAD ARRAY_DOWNLOAD
-		download_source DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64
+		download_source_title
+		download_source $DOWNLOAD ARRAY_DOWNLOAD
+		download_source $DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64
 		exit 0
 	fi
 	
 	if [ $SBO_CHECK_MD5SUM = "yes" ]; then
 		check_md5sum_source_title
-		check_md5sum_source DOWNLOAD ARRAY_DOWNLOAD ARRAY_MD5SUM
-		check_md5sum_source DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
+		check_md5sum_source $DOWNLOAD ARRAY_DOWNLOAD ARRAY_MD5SUM
+		check_md5sum_source $DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
 		exit 0
 	fi
 	
 	if [ $SBO_UPDATE_MD5SUM = "yes" ]; then
 		update_md5sum_source_title
-		update_md5sum_source DOWNLOAD ARRAY_DOWNLOAD ARRAY_MD5SUM
-		update_md5sum_source DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
+		update_md5sum_source $DOWNLOAD ARRAY_DOWNLOAD ARRAY_MD5SUM
+		update_md5sum_source $DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
 		exit 0
 	fi
 	
@@ -269,8 +303,11 @@ main(){
 		echo "Use -r or -ri options to rebuild."
 		exit 0
 	else
-		download_source
-		check_md5sum_source
+		download_source_title
+		download_source $DOWNLOAD ARRAY_DOWNLOAD
+		download_source $DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64
+		check_md5sum_source $DOWNLOAD ARRAY_DOWNLOAD ARRAY_MD5SUM
+		check_md5sum_source $DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
 		build
 	fi
 	
