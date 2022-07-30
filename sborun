@@ -1,11 +1,6 @@
 #!/bin/bash
 
 DIRNAM=$(basename $PWD)
-. $DIRNAM.info
-if [ "$DIRNAM" != "$PRGNAM" ]; then
-	echo "SlackBuild folder name is different than PRGNAM!"
-	exit 1
-fi
 
 . /etc/sboutils.conf
 
@@ -143,7 +138,7 @@ check_md5sum_source(){
 }
 
 update_md5sum_source(){
-		if [ ! -z "$1" ] && [ ! "$1" = "UNSUPPORTED" ] && [ ! "$1" = "UNTESTED" ]; then
+		if [ ! -z "$1" ] && [ "$1" != "UNSUPPORTED" ] && [ "$1" != "UNTESTED" ]; then
 		
 		local -n local_array_download=$2 # ARRAY_DOWNLOAD(_x86_64)
 		local -n local_array_md5sum=$3 # ARRAY_MD5SUM(_x86_64)
@@ -262,10 +257,10 @@ options(){
 
 main(){
 	options "$@"
-
+	check_folder $PWD
+	check_files $DIRNAM.SlackBuild
+	check_files $DIRNAM.info
 	load_info
-	check_files $PRGNAM.SlackBuild
-	check_files $PRGNAM.info
 	check_files slack-desc
 	check_additional_files doinst.sh
 	check_additional_files douninst.sh
@@ -275,27 +270,31 @@ main(){
 	# functions to execute pre-build
 	if [ $SBO_DOWNLOAD = "yes" ]; then
 		download_source_title
-		download_source $DOWNLOAD ARRAY_DOWNLOAD
-		download_source $DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64
+		download_source "$DOWNLOAD" ARRAY_DOWNLOAD
+		download_source "$DOWNLOAD_x86_64" ARRAY_DOWNLOAD_x86_64
 		exit 0
 	fi
 	
 	if [ $SBO_CHECK_MD5SUM = "yes" ]; then
 		check_md5sum_source_title
-		check_md5sum_source $DOWNLOAD ARRAY_DOWNLOAD ARRAY_MD5SUM
-		check_md5sum_source $DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
+		check_md5sum_source "$DOWNLOAD" ARRAY_DOWNLOAD ARRAY_MD5SUM
+		check_md5sum_source "$DOWNLOAD_x86_64" ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
 		exit 0
 	fi
 	
 	if [ $SBO_UPDATE_MD5SUM = "yes" ]; then
 		update_md5sum_source_title
-		update_md5sum_source $DOWNLOAD ARRAY_DOWNLOAD ARRAY_MD5SUM
-		update_md5sum_source $DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
+		update_md5sum_source "$DOWNLOAD" ARRAY_DOWNLOAD ARRAY_MD5SUM
+		update_md5sum_source "$DOWNLOAD_x86_64" ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
 		exit 0
 	fi
 	
 	# build, install and upgrade functions below cannot be used as regular user
 	check_installpkg
+	if [ -f $PKGS/$PACKAGE_NAME ] && [ -z "$PACKAGE_INST" ] && [ "$SBO_INSTALL" = "yes" ]; then
+		install_package
+		exit 0
+	fi
 	
 	if [ -f $PKGS/$PACKAGE_NAME ] || [ ! -z "$PACKAGE_INST" ] && [ "$SBO_REBUILD" = "no" ] && [ "$SBO_REINSTALL" = "no" ]; then
 		package_exists
@@ -304,10 +303,11 @@ main(){
 		exit 0
 	else
 		download_source_title
-		download_source $DOWNLOAD ARRAY_DOWNLOAD
-		download_source $DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64
-		check_md5sum_source $DOWNLOAD ARRAY_DOWNLOAD ARRAY_MD5SUM
-		check_md5sum_source $DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
+		download_source "$DOWNLOAD" ARRAY_DOWNLOAD
+		download_source "$DOWNLOAD_x86_64" ARRAY_DOWNLOAD_x86_64
+		update_md5sum_source_title
+		check_md5sum_source "$DOWNLOAD" ARRAY_DOWNLOAD ARRAY_MD5SUM
+		check_md5sum_source "$DOWNLOAD_x86_64" ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
 		build
 	fi
 	
