@@ -1,1 +1,112 @@
 #!/bin/bash
+
+. /etc/sboutils.conf
+
+SBO_INFO="no"
+SBO_DEP="no"
+SBO_DEPENDENTS="no"
+SBO_FIND="no"
+
+check_location(){
+	LOCATION=$(cat $REPO/SLACKBUILDS.TXT | grep "/${1}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
+	if [ -z $LOCATION ]; then
+		echo "$1 not found on SlackBuilds.org! Exiting..."
+		exit 1
+	fi
+}
+
+full_path(){
+	FULLPATH=$REPO$LOCATION
+	. $FULLPATH/$1.info
+	SHORTDESC=$(cat $FULLPATH/slack-desc | grep "${1}: ${1}" | sed "s|${1}: ||")
+	CATEGORY=$(echo "$LOCATION" | sed "s:/$PRGNAM::")
+}
+
+display_info(){
+	echo ""
+	echo "$SHORTDESC"
+	echo "Version:  $VERSION"
+	echo "Category: $CATEGORY"
+	echo "Homepage: $HOMEPAGE"
+
+	echo ""
+	cat $FULLPATH/README
+	echo ""
+	echo "--- direct dependencies: ([i] installed)"
+}
+
+display_requires(){
+	requires_array=( $REQUIRES )
+
+	for d in ${requires_array[@]}; do
+		pkg=""
+  
+		# check if dependency ($d) is among installed pkgs
+		installed=$(find /var/lib/pkgtools/packages/ -name "${d}-*" )
+		installed_array=( $installed )
+		if [ ! -z "$installed" ]; then
+			for i in ${installed_array[@]}; do
+				pkg+=$(echo "`basename ${i%-*-*-*}` ")
+			done
+
+			pkg_array=( $pkg )
+			if [[ " ${pkg_array[*]} " =~ " ${d} " ]]; then
+				echo "[i] $d"
+			elif [[ ! " ${pkg_array[*]} " =~ " ${d} " ]]; then
+				echo "[ ] $d"
+			fi
+		elif [ -z "$installed" ]; then
+			echo "[ ] $d"
+		fi
+	done
+}
+
+helper() {
+	echo "Usage: `basename $0` [task] SlackBuild"
+	echo "Tasks:"
+	echo "  info           display information about SlackBuild"
+	echo "  dep            display dependencies chain for a SlackBuild"
+	echo "  dependent      display what depends on a SlackBuild"
+	echo "  find|search    search for a SlackBuild"         
+	echo "  help           display this help message"
+}
+
+options(){
+	case $1 in
+		info)
+			SBO_INFO="yes"
+		;;
+		dep)
+			SBO_DEP="yes"
+		;;
+		dependents)
+			SBO_DEPENDENTS="yes"
+		;;
+		find|search)
+			SBO_FIND="yes"
+		;;
+		help)
+			helper
+			exit 0
+		;;
+		*)
+			echo "Unknown option $1"
+			exit 1
+		;;
+  	esac
+
+}
+
+main(){
+	options "$1" "$2"
+	check_location "$2"
+	full_path "$2"
+	if [ $SBO_INFO = "yes" ]; then
+		display_info "$2"
+		display_requires "$2"
+	fi
+	
+	exit 0
+}
+
+main "$1" "$2"
