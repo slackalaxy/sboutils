@@ -115,6 +115,7 @@ check_md5sum_source(){
 		local -n local_array_download=$2 # ARRAY_DOWNLOAD(_x86_64)
 		local -n local_array_md5sum=$3 # ARRAY_MD5SUM(_x86_64)
 		
+		md5summary=""
 		# determine position in array
 		for (( d=0; d<${#local_array_download[@]}; d++ )); do
 			NAME_d=$(basename ${local_array_download[$d]})
@@ -122,6 +123,7 @@ check_md5sum_source(){
 				# echo "[ ] ${local_array_download[$d]}"
 				#exit 0
 				echo "[ ] $NAME_d"
+				md5summary+="missing "
 			elif [ -f "$NAME_d" ]; then
 				MD5SUM_d=$(md5sum $NAME_d | awk '{print $1}')
 				if [ "$MD5SUM_d" = "${local_array_md5sum[$d]}" ]; then
@@ -131,12 +133,20 @@ check_md5sum_source(){
 					#echo "[e] ${local_array_download[$d]}"
 					#exit 0
 					echo "[e] $NAME_d"
+					md5summary+="error "
 				fi
 			fi
 		done
 	fi
+	md5summary_array=( $md5summary )
 }
 
+report_md5sum_source(){
+	if [[ " ${md5summary_array[*]} " =~ " missing " ]] || [[ " ${md5summary_array[*]} " =~ " error " ]]; then
+		echo "Download sources missing or have md5sum mismatch!"
+		exit 1
+	fi
+}
 update_md5sum_source(){
 		if [ ! -z "$1" ] && [ "$1" != "UNSUPPORTED" ] && [ "$1" != "UNTESTED" ]; then
 		
@@ -169,7 +179,7 @@ download_source_title(){
 	echo "--- download ([d] source already downloaded, [ ] source missing)"
 }
 check_md5sum_source_title(){
-	echo "--- check md5sum ([m] match, [e] mismatch, [ ] source missing)"
+	echo "--- check md5sum ([m] match, [e] error (mismatch), [ ] source missing)"
 }
 
 update_md5sum_source_title(){
@@ -309,6 +319,7 @@ main(){
 		update_md5sum_source_title
 		check_md5sum_source "$DOWNLOAD" ARRAY_DOWNLOAD ARRAY_MD5SUM
 		check_md5sum_source "$DOWNLOAD_x86_64" ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
+		report_md5sum_source
 		build
 	fi
 	
