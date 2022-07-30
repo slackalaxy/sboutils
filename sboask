@@ -8,21 +8,29 @@ SBO_DEPENDENTS="no"
 SBO_FIND="no"
 
 check_location(){
-	LOCATION=$(cat $REPO/SLACKBUILDS.TXT | grep "/${1}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
-	if [ -z $LOCATION ]; then
+	if [ "$2" = "strict" ]; then
+		LOCATION=$(cat $REPO/SLACKBUILDS.TXT | grep "/${1}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
+	else
+		LOCATION=$(cat $REPO/SLACKBUILDS.TXT | grep -i "${1}" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
+	fi
+	
+	LOCATION_array=( $LOCATION )
+	if [ "${#LOCATION_array[@]}" = "0" ] ; then
 		echo "$1 not found on SlackBuilds.org! Exiting..."
 		exit 1
 	fi
 }
 
-full_path(){
-	FULLPATH=$REPO$LOCATION
-	. $FULLPATH/$1.info
-	SHORTDESC=$(cat $FULLPATH/slack-desc | grep "${1}: ${1}" | sed "s|${1}: ||")
-	CATEGORY=$(echo "$LOCATION" | sed "s:/$PRGNAM::")
+location_search(){
+	for i in ${LOCATION_array[@]}; do
+		echo -e "$i"
+	done
 }
 
 display_info(){
+	. $REPO/$LOCATION/$1.info
+	SHORTDESC=$(cat $REPO/$LOCATION/slack-desc | grep "${1}: ${1}" | sed "s|${1}: ||")
+	CATEGORY=$(echo "$LOCATION" | sed "s:/$PRGNAM::")
 	echo ""
 	echo "$SHORTDESC"
 	echo "Version:  $VERSION"
@@ -30,7 +38,7 @@ display_info(){
 	echo "Homepage: $HOMEPAGE"
 
 	echo ""
-	cat $FULLPATH/README
+	cat $REPO/$LOCATION/README
 	echo ""
 	echo "--- direct dependencies: ([i] installed)"
 }
@@ -99,13 +107,18 @@ options(){
 
 main(){
 	options "$1" "$2"
-	check_location "$2"
-	full_path "$2"
+	
 	if [ $SBO_INFO = "yes" ]; then
+		check_location "$2" strict
 		display_info "$2"
 		display_requires "$2"
+		exit 0
 	fi
-	
+	if [ $SBO_FIND = "yes" ]; then
+		check_location "$2" nonstrict
+		location_search "$2" 
+		exit 0
+	fi
 	exit 0
 }
 
