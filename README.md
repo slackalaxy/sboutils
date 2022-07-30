@@ -1,6 +1,6 @@
 # sboutils
 
-Tools written in bash to manage SlackBuilds: `sboask` (shows information from SlackBuilds.org), `sborun` (runs a SlackBuild automatically) and `sbomake` (helps with SlackBuild templates). They are heavily inspired by the pkgtools and prt-get outstanding package management tools for CRUX.
+Tools written in bash to manage SlackBuilds: `sboask` (shows information from SlackBuilds.org), `sborun` (runs a SlackBuild automatically) and `sbomake` (helps with SlackBuild templates). They are heavily inspired by the pkgtools and prt-get outstanding package management tools for CRUX. **This is still very much work in progress!**
 
 ## Requirements
 * [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/)
@@ -8,8 +8,9 @@ Tools written in bash to manage SlackBuilds: `sboask` (shows information from Sl
 * template files should be in: `/usr/share/sboutils/templates`
 
 ## sboask
-Displays info about a SlackBuild (including immediate list of dependencies and whether they are already installed), uses [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/) to generate a full list of dependencies or SlackBuilds that depend on the searched entry, as well as does some basic searching.
+Displays info about a SlackBuild (including immediate list of dependencies and whether they are already installed), uses [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/) to generate a full list of dependencies or SlackBuilds that depend on the searched entry, as well as, does some basic searching.
 ```
+bash-5.1$ sboask help
 Usage: sboask [task] SlackBuild
 Tasks:
   info           display information about SlackBuild
@@ -18,10 +19,10 @@ Tasks:
   find|search    search for a SlackBuild
   help           display this help message
 ```
-* As an example, let's consider (inkscape), and display its info, by:
-  * `sboask info inkscape`
-  * this outputs, where dependencies lxml, numpy and potrace I already have installed:
+As an example, let's consider (inkscape), and display its info, by `sboask info inkscape`. This outputs, where dependencies lxml, numpy and potrace I already have installed:
 ```
+bash-5.1$ sboask info inkscape
+
 inkscape (Open Source vector graphics editor)
 Version:  1.2
 Category: graphics
@@ -49,46 +50,42 @@ others and exports PNG as well as multiple vector-based formats.
 [ ] pstoedit
 [ ] scour
 ```
-* Let's display the full list of inkscape dependencies:
-  * `sboask dep inkscape`
-  * which outputs a simple list, recursively:
-
+Let's display the full list of inkscape dependencies by `sboask dep inkscape`, which outputs a simple list, recursively:
 ```
+bash-5.1$ sboask dep inkscape
 --- dependencies: ([i] installed, [ ] not installed)
-[ ] libcdr
-[ ] double-conversion
+[i] numpy
 [ ] dos2unix
-[i] python3-webencodings
-[ ] pstoedit
 [i] potrace
+[ ] pstoedit
+[ ] double-conversion
+[ ] gdl
+[i] python3-soupsieve
+[ ] libcdr
+[i] python3-webencodings
 [i] python2-setuptools-scm
 [ ] scour
-[ ] gdl
 [i] functools-lru-cache
-[i] numpy
-[i] python3-soupsieve
 [i] python2-soupsieve
 [ ] GraphicsMagick
-[i] python2-BeautifulSoup4
-[i] BeautifulSoup4
 [i] html5lib
+[i] BeautifulSoup4
+[i] python2-BeautifulSoup4
 [i] lxml
 [ ] inkscape
 ```
-* Let's see what depends on libgnome
-  * `sboask dependent libgnome`
-  * I have it installed, as well as most of it dependent SlackBuilds:
+Let's see what depends on libgnome, by `sboask dependent libgnome`. I have it installed, as well as most of it dependent SlackBuilds:
 ```
+bash-5.1$ sboask dependent libgnome
 --- dependencies: ([i] installed, [ ] not installed)
 [i] libgnome
-[i] libbonoboui
 [ ] gnome-python
+[i] libbonoboui
 [i] libgnomemm
 ```
-* Finally, searching is quite simple (for now)
-  * `sboask find clamav`
-  * this returns a simple list, telling the category:
+Finally, searching has a quite simple output (for now). Let's find stuff that sounds like clamav, by `sboask find clamav`. This returns a list, telling the category:
 ```
+bash-5.1$ sboask find clamav
 network/clamav-unofficial-sigs
 system/clamav
 system/squidclamav
@@ -97,6 +94,7 @@ system/squidclamav
 ## sborun
 This should be run from within a folder containing a SlackBuild and it's associated files. It can download sources, check and compare md5sum, update md5sum (I use this when I make a version update), as well as build and install the ready package.
 ```
+bash-5.1$ sborun -h
 Run sborun from within the SlackBuild containing folder.
 Usage: sborun [options]
 Options:
@@ -113,3 +111,16 @@ Options:
 ```
 
 ## sbomake
+This helps create a new SlackBuild, by fetching the appropriate template and naming files accordingly, cleaning up a bit, filling the program's name automatically, as well as the author's credentials. It should be run from within the folder where you plan your SlackBuild to be.
+```
+bash-5.1$ sbomake -h
+Run sbomake from within the SlackBuild folder.
+Usage: sbomake [template] [option]
+Templates: auto (autotools), cmake, haskell, meson,
+           perl, python, ruby (rubygem)
+Options:
+  -di,  --doinst            copy doinst.sh file
+  -du,  --douninst          copy douninst.sh file
+  -de,  --desktop           copy template.desktop file
+  -h,   --help              print this help
+```
