@@ -90,30 +90,66 @@ download_source(){
 check_md5sum_source(){
 	if [ ! -z "$1" ] && [ ! "$1" = "UNSUPPORTED" ] && [ ! "$1" = "UNTESTED" ]; then
 		
-		local -n local_array_download=$2
-		local -n local_array_md5sum=$3
+		local -n local_array_download=$2 # ARRAY_DOWNLOAD(_x86_64)
+		local -n local_array_md5sum=$3 # ARRAY_MD5SUM(_x86_64)
 		
 		# determine position in array
 		for (( d=0; d<${#local_array_download[@]}; d++ )); do
 			NAME_d=$(basename ${local_array_download[$d]})
 			if [ ! -f "$NAME_d" ]; then
-				echo "[ ] ${local_array_download[$d]}"
-				exit 0
+				# echo "[ ] ${local_array_download[$d]}"
+				#exit 0
+				echo "[ ] $NAME_d"
 			elif [ -f "$NAME_d" ]; then
 				MD5SUM_d=$(md5sum $NAME_d | awk '{print $1}')
 				if [ "$MD5SUM_d" = "${local_array_md5sum[$d]}" ]; then
-					echo "[m] $MD5SUM_d $NAME_d"
+					#echo "[m] $MD5SUM_d $NAME_d"
+					echo "[m] $NAME_d"
 				elif [ "$MD5SUM_d" != "${local_array_md5sum[$d]}" ]; then
-					echo "[e] ${local_array_download[$d]}"
-					exit 0
+					#echo "[e] ${local_array_download[$d]}"
+					#exit 0
+					echo "[e] $NAME_d"
 				fi
 			fi
 		done
 	fi
 }
 
-title_md5sum(){
-		echo "--- check md5sum ([m] match, [e] mismatch, [ ] missing)"
+update_md5sum_source(){
+		if [ ! -z "$1" ] && [ ! "$1" = "UNSUPPORTED" ] && [ ! "$1" = "UNTESTED" ]; then
+		
+		local -n local_array_download=$2 # ARRAY_DOWNLOAD(_x86_64)
+		local -n local_array_md5sum=$3 # ARRAY_MD5SUM(_x86_64)
+		
+		# determine position in array (d = index)
+		for (( d=0; d<${#local_array_download[@]}; d++ )); do
+			NAME_d=$(basename ${local_array_download[$d]})
+			if [ ! -f "$NAME_d" ]; then
+				#echo "[ ] ${local_array_download[$d]}"
+				#exit 0
+				echo "[ ] $NAME_d"
+			elif [ -f "$NAME_d" ]; then
+				MD5SUM_new=$(md5sum $NAME_d | awk '{print $1}' | sed 's:"::g')
+				if [ "$MD5SUM_new" = "${local_array_md5sum[$d]}" ]; then
+					#echo "[m] $MD5SUM_new $NAME_d"
+					echo "[m] $NAME_d"
+				elif [ "$MD5SUM_new" != "$MD5SUM_old" ]; then
+					sed -i "s|${local_array_md5sum[$d]}|${MD5SUM_new}|" $PRGNAM.info
+					echo "[u] $NAME_d"
+					#echo "[u] ${local_array_md5sum[$d]} -> $MD5SUM_new $NAME_d"
+					#exit 0
+				fi
+			fi
+		done
+	fi
+}
+
+check_md5sum_source_title(){
+		echo "--- check md5sum ([m] match, [e] mismatch, [ ] source missing)"
+}
+
+update_md5sum_source_title(){
+		echo "--- update md5sum ([m] match, [u] update, [ ] source missing)"
 }
 
 build(){
@@ -134,72 +170,6 @@ install_warn(){
 
 reinstall_package(){
 	upgradepkg --reinstall --install-new $PKGS/$PACKAGE_NAME
-}
-
-update_md5sum_source(){
-	# make things more readable in this mess...
-	local -n local_array_download=$2
-	startRow=$3
-	endRow=$4
-	
-	if [ ! -z "$1" ] && [ ! "$1" = "UNSUPPORTED" ] && [ ! "$1" = "UNTESTED" ]; then
-		
-		for d in ${local_array_download[@]}; do
-			MD5SUM_UPDATE=$(md5sum `basename $d` | awk '{print $1}')
-			MD5SUM_STACK+="$MD5SUM_UPDATE "
-		done
-  		
-		ARRAY_MD5SUM=( $MD5SUM_STACK )
-		
-  		ARRAY_LAST=${#ARRAY_MD5SUM[@]}
-		echo -e "$ARRAY_LAST MD5SUM sources, processing..."
-  		LAST="$(( $ARRAY_LAST-2 ))"
-		if [ "$ARRAY_LAST" = "0" ]; then
-			echo -e "No MD5SUM sources, skipping..."
-   		elif [ "$ARRAY_LAST" = "1" ]; then
-			sed -i "/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}" $PRGNAM.info
-			sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]}\"" $PRGNAM.info
-   		elif [ "$ARRAY_LAST" = "2" ]; then
-			sed -i "/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}" $PRGNAM.info
-			sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]} \\\\" $PRGNAM.info
-			sed -i "/DOWNLOAD_x86_64=/c${ARRAY_MD5SUM[-1]}\"\nDOWNLOAD_x86_64=" $PRGNAM.info
-   		elif [ "$ARRAY_LAST" -gt "2" ]; then
-			sed -i "/MD5SUM=/,/DOWNLOAD_x86_64=/{//!d}" $PRGNAM.info
-			sed -i "/MD5SUM=/c\MD5SUM=\"${ARRAY_MD5SUM[0]} \\\\" $PRGNAM.info
-			for e in ${ARRAY_MD5SUM[@]:1:$LAST}; do
-				sed -i "/^DOWNLOAD_x86_64=/i $e \\\\" $PRGNAM.info
-			done
-			sed -i "/DOWNLOAD_x86_64=/c${ARRAY_MD5SUM[-1]}\"\nDOWNLOAD_x86_64=" $PRGNAM.info
-		fi
-	fi
-
-	if [ ! -z "$DOWNLOAD_x86_64" ] && [ ! "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ ! "$DOWNLOAD_x86_64" = "UNTESTED" ]; then
-		for d in ${ARRAY_DOWNLOAD_x86_64[@]}; do
-			MD5SUM_x86_64_UPDATE=$(md5sum `basename $d` | awk '{print $1}')
-			MD5SUM_x86_64_STACK+="$MD5SUM_x86_64_UPDATE "
-		done
-		ARRAY_MD5SUM_x86_64=( $MD5SUM_x86_64_STACK )
-		ARRAY_x86_64_LAST=${#ARRAY_MD5SUM_x86_64[@]}
-		echo -e "$ARRAY_x86_64_LAST MD5SUM_x86_64 sources, processing..."
-		LAST_x86_64="$(( $ARRAY_x86_64_LAST-2 ))"
-		if [ "$ARRAY_x86_64_LAST" = "0" ]; then
-			echo -e "No MD5SUM_x86_64 sources, skipping..."
-		elif [ "$ARRAY_x86_64_LAST" = "1" ]; then
-			sed -i '/MD5SUM_x86_64=/,/REQUIRES=/{//!d}' $PRGNAM.info
-			sed -i "/MD5SUM_x86_64=/c\MD5SUM_x86_64=\"${ARRAY_MD5SUM_x86_64[0]}\"" $PRGNAM.info
-		elif [ "$ARRAY_x86_64_LAST" = "2" ]; then
-			sed -i '/MD5SUM_x86_64=/,/REQUIRES=/{//!d}' $PRGNAM.info
-			sed -i "/MD5SUM_x86_64=/c\MD5SUM_x86_64=\"${ARRAY_MD5SUM_x86_64[0]} \\\\" $PRGNAM.info
-			sed -i "/REQUIRES=/c${ARRAY_MD5SUM_x86_64[-1]}\"\nREQUIRES=" $PRGNAM.info
-		elif [ "$ARRAY_x86_64_LAST" -gt "2" ]; then
-			sed -i '/MD5SUM_x86_64=/,/REQUIRES=/{//!d}' $PRGNAM.info
-			sed -i "/MD5SUM_x86_64=/c\MD5SUM_x86_64=\"${ARRAY_MD5SUM_x86_64[0]} \\\\" $PRGNAM.info
-			for e in ${ARRAY_MD5SUM_x86_64[@]:1:$LAST_x86_64}; do
-				sed -i "/^REQUIRES=/i $e \\\\" $PRGNAM.info
-			done
-			sed -i "/REQUIRES=/c${ARRAY_MD5SUM[-1]}\"\nREQUIRES=" $PRGNAM.info
-		fi
-	fi
 }
 
 helper() {
@@ -277,15 +247,16 @@ main(){
 	fi
 	
 	if [ $SBO_CHECK_MD5SUM = "yes" ]; then
-		title_md5sum
+		check_md5sum_source_title
 		check_md5sum_source DOWNLOAD ARRAY_DOWNLOAD ARRAY_MD5SUM
 		check_md5sum_source DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
 		exit 0
 	fi
 	
 	if [ $SBO_UPDATE_MD5SUM = "yes" ]; then
-		update_md5sum_source DOWNLOAD ARRAY_DOWNLOAD MD5SUM DOWNLOAD_x86_64
-		update_md5sum_source DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64 MD5SUM_x86_64 REQUIRES
+		update_md5sum_source_title
+		update_md5sum_source DOWNLOAD ARRAY_DOWNLOAD ARRAY_MD5SUM
+		update_md5sum_source DOWNLOAD_x86_64 ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
 		exit 0
 	fi
 	
