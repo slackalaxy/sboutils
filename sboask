@@ -23,6 +23,11 @@ check_location(){
 	
 	LOCATION_array=( $LOCATION )
 	
+	if [ -z "$1" ]; then
+		echo "Input is empty. To view options, use `basename $0` help"
+		exit 1
+	fi
+	
 	if [ "${#LOCATION_array[@]}" = "0" ] ; then
 		echo "$1 not found on SlackBuilds.org! Exiting..."
 		exit 1
@@ -146,7 +151,7 @@ options(){
 		dep)
 			SBO_DEPS="yes"
 		;;
-		dependents)
+		dependent)
 			SBO_DEPENDENTS="yes"
 		;;
 		find|search)
@@ -198,8 +203,7 @@ main(){
 	exit 0
 }
 
-is_imput_empty "$1"
-is_imput_empty "$2"
+is_imput_empty "$1" "$2"
 main "$1" "$2"
 
 # End of file
