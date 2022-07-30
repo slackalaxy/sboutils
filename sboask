@@ -199,6 +199,7 @@ main(){
 }
 
 is_imput_empty "$1"
+is_imput_empty "$2"
 main "$1" "$2"
 
 # End of file
