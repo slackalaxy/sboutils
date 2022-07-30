@@ -15,6 +15,26 @@ SBO_TEMPLATE_DOINST="no"
 SBO_TEMPLATE_DOUNINST="no"
 SBO_TEMPLATE_DESKTOP="no"
 
+is_imput_empty(){
+	if [ "$1" = "" ]; then
+		echo "Input is empty. Use -h for help"
+		exit 1
+	fi
+}
+
+check_folder() {
+	if [ ! -d $1 ]; then
+		echo "Folder '$1' does not exist."
+		exit 1
+	elif [ ! -w $1 ]; then
+		echo "Folder '$1' not writable."
+		exit 1
+	elif [ ! -x $1 ] || [ ! -r $1 ]; then
+		echo "Folder '$1' not readable."
+		exit 1
+	fi
+}
+
 check_if_file_exists(){
 	if [ -f "$1" ]; then
 		echo "A file called $1 already exists in $DIRNAM."
@@ -74,7 +94,7 @@ prepare_info_template(){
 
 helper() {
 	echo "Run `basename $0` from within the SlackBuild folder."
-	echo "Usage: `basename $0` [template] [options]"
+	echo "Usage: `basename $0` [template] [option]"
 	echo "Templates: auto (autotools), cmake, haskell, meson,"
 	echo "           perl, python, ruby (rubygem)"
 	echo "Options:"
@@ -132,7 +152,8 @@ options(){
 
 main(){
 	options "$@"
-
+	check_folder $PWD
+	
 	if [ "$SBO_TEMPLATE_DOINST" = "yes" ]; then
 		check_if_file_exists doinst.sh
 		copy_template_file doinst.sh doinst.sh
@@ -170,6 +191,7 @@ main(){
 	exit 0
 }
 
+is_imput_empty "$@"
 main "$@"
 
 # End of file
