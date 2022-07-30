@@ -258,6 +258,7 @@ options(){
 main(){
 	options "$@"
 	check_folder $PWD
+	check_folder $BUILD
 	check_files $DIRNAM.SlackBuild
 	check_files $DIRNAM.info
 	load_info
