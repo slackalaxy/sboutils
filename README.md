@@ -4,11 +4,11 @@ Tools written in bash to manage SlackBuilds: `sboask` (shows information from Sl
 
 ## Requirements
 * [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/)
-* configuration file should go to: `/etc/sboutils.conf`
-* template files should be in: `/usr/share/sboutils/templates`
+* configuration file should go here: `/etc/sboutils.conf`
+* [template](./templates/) files should be in: `/usr/share/sboutils/templates`. These are the ones at [SBo](https://slackbuilds.org/templates/), I only added a `template.desktop` file.
 
 ## sboask
-Displays info about a SlackBuild (including immediate list of dependencies and whether they are already installed), uses [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/) to generate a full list of dependencies or SlackBuilds that depend on the searched entry, as well as, does some basic searching.
+This asks SlackBuilds.org about stuff. It displays info about a SlackBuild (including immediate list of dependencies and whether they are already installed), uses [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/) to generate a full list of dependencies, or reverse-dependencies (dependents) -- SlackBuilds that depend on the searched entry, as well as, does some basic searching.
 ```
 bash-5.1$ sboask help
 Usage: sboask [task] SlackBuild
@@ -19,7 +19,7 @@ Tasks:
   find|search    search for a SlackBuild
   help           display this help message
 ```
-As an example, let's consider (inkscape), and display its info, by `sboask info inkscape`. This outputs, where dependencies lxml, numpy and potrace I already have installed:
+As an example, let's consider **inkscape** and display information about it, by `sboask info inkscape`. This outputs the following, where dependencies *lxml*, *numpy* and *potrace* I already have installed:
 ```
 bash-5.1$ sboask info inkscape
 
@@ -50,7 +50,7 @@ others and exports PNG as well as multiple vector-based formats.
 [ ] pstoedit
 [ ] scour
 ```
-Let's display the full list of inkscape dependencies by `sboask dep inkscape`, which outputs a simple list, recursively:
+Let's display the full list of **inkscape** dependencies by `sboask dep inkscape`, which outputs a simple list, recursively:
 ```
 bash-5.1$ sboask dep inkscape
 --- dependencies: ([i] installed, [ ] not installed)
@@ -74,7 +74,7 @@ bash-5.1$ sboask dep inkscape
 [i] lxml
 [ ] inkscape
 ```
-Let's see what depends on libgnome, by `sboask dependent libgnome`. I have it installed, as well as most of it dependent SlackBuilds:
+Let's see what depends on **libgnome**, by `sboask dependent libgnome`. I have it installed, as well as most of it dependent SlackBuilds:
 ```
 bash-5.1$ sboask dependent libgnome
 --- dependencies: ([i] installed, [ ] not installed)
@@ -83,7 +83,7 @@ bash-5.1$ sboask dependent libgnome
 [i] libbonoboui
 [i] libgnomemm
 ```
-Finally, searching has a quite simple output (for now). Let's find stuff that sounds like clamav, by `sboask find clamav`. This returns a list, telling the category:
+Finally, searching has a quite simple output (for now). Let's find stuff that sounds like **clamav**, by `sboask find clamav`. This returns a list, showing the category:
 ```
 bash-5.1$ sboask find clamav
 network/clamav-unofficial-sigs
@@ -92,7 +92,7 @@ system/squidclamav
 ```
 
 ## sborun
-This should be run from within a folder containing a SlackBuild and it's associated files. It can download sources, check and compare md5sum, update md5sum (I use this when I make a version update), as well as build and install the ready package.
+This runs a SlackBuild. It should be run from within the folder containing the SlackBuild and its associated files (*.info, slack-desc,...). It can download sources, check md5sum, update md5sum (I use this when I make a version update), as well as build and install the ready package.
 ```
 bash-5.1$ sborun -h
 Run sborun from within the SlackBuild containing folder.
@@ -111,7 +111,7 @@ Options:
 ```
 
 ## sbomake
-This helps create a new SlackBuild, by fetching the appropriate template and naming files accordingly, cleaning up a bit, filling the program's name automatically, as well as the author's credentials. It should be run from within the folder where you plan your SlackBuild to be.
+This makes a new SlackBuild, or rather it helps create it, by fetching the appropriate template (autotools, cmake, meson,...) and naming files accordingly. It als cleans up a bit, filling the program's name automatically where needed, as well as the author's credentials. It should be run from within the folder where you plan your SlackBuild to be.
 ```
 bash-5.1$ sbomake -h
 Run sbomake from within the SlackBuild folder.
