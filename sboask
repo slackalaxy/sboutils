@@ -53,7 +53,6 @@ display_info(){
 	echo ""
 	cat $REPO/$LOCATION/README
 	echo ""
-	echo "--- direct dependencies: ([i] installed)"
 }
 
 display_requires(){
@@ -178,6 +177,7 @@ main(){
 	if [ "$SBO_INFO" = "yes" ]; then
 		check_location "$2" strict
 		display_info "$2"
+		dependencies_title
 		display_requires "$2"
 		exit 0
 	fi
