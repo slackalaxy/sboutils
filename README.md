@@ -92,7 +92,7 @@ system/squidclamav
 ```
 
 ## sborun
-This runs a SlackBuild. It should be run from within the folder containing the SlackBuild and its associated files (*.info, slack-desc,...). It can download sources, check md5sum, update md5sum (I use this when I make a version update), as well as build and install the ready package.
+This runs a SlackBuild. It should be run from within the folder containing the SlackBuild and its associated files (*.info, slack-desc,...). It can download sources, check md5sum, as well as build and install the ready package.
 ```
 bash-5.1$ sborun -h
 Run sborun from within the SlackBuild containing folder.
@@ -103,15 +103,13 @@ Options:
   -w,   --warn              warn if package will overwrite files
   -r,   --rebuild           rebuild package
   -ri,  --reinstall         rebuild and reinstall package
-  -d,   --download          download sources and exit
+  -d,   --download          download and check sources for x86_64 and exit
   -nc,  --no-certificate    do not check download certificate
-  -cm,  --check-md5         check sources md5sum and exit
-  -um,  --update-md5        update sources md5sum and exit
   -h,   --help              print this help
 ```
 
 ## sbomake
-This makes a new SlackBuild, or rather it helps create it, by fetching the appropriate template (autotools, cmake, meson,...) and naming files accordingly. It als cleans up a bit, filling the program's name automatically where needed, as well as the author's credentials. It should be run from within the folder where you plan your SlackBuild to be.
+This makes a new SlackBuild, or rather it helps create it, by fetching the appropriate template (autotools, cmake, meson,...) and naming files accordingly. It also cleans up a bit, filling the program's name automatically where needed, as well as the author's credentials. It can download sources and update their md5sum, for example between version updates. It should be run from within the folder where you plan your SlackBuild to be.
 ```
 bash-5.1$ sbomake -h
 Run sbomake from within the SlackBuild folder.
@@ -122,5 +120,8 @@ Options:
   -di,  --doinst            copy doinst.sh file
   -du,  --douninst          copy douninst.sh file
   -de,  --desktop           copy template.desktop file
+  -d,   --download          download all sources and exit
+  -nc,  --no-certificate    do not check download certificate
+  -um,  --update-md5        update sources md5sum and exit
   -h,   --help              print this help
 ```
