@@ -10,8 +10,6 @@ SBO_WARN="no"
 SBO_REBUILD="no"
 SBO_REINSTALL="no"
 SBO_DOWNLOAD="no"
-SBO_CHECK_MD5SUM="no"
-SBO_UPDATE_MD5SUM="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
 
 check_folder() {
@@ -71,10 +69,42 @@ does_package_exist(){
 
 load_sources(){
 # Load sources and their md5sums as arrays
-	read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
-	read -r -d '' -a ARRAY_DOWNLOAD_x86_64 < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
-	read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
-	read -r -d '' -a ARRAY_MD5SUM_x86_64 < <( echo "$MD5SUM_x86_64" && printf '\0' )
+	
+	# default: sources for both arch are on the DOWNLOAD line
+	if [ "$DOWNLOAD" != "UNSUPPORTED" ] && [ -z "$DOWNLOAD_x86_64" ]; then
+		read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
+		read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
+	
+	# x86 app that may run on 64bit
+	elif [ "$DOWNLOAD_86_64" = "UNTESTED" ]; then
+		read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
+		read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
+	# each arch has different sources
+	elif [ "$DOWNLOAD" != "UNSUPPORTED" ] && [ "$DOWNLOAD" != "UNTESTED" ] && [ ! -z "$DOWNLOAD_x86_64" ] && [ "$DOWNLOAD_x86_64" != "UNSUPPORTED" ]; then
+		# get sources only for current arch
+		if [ "$ARCH" = "x86" ]; then
+			read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
+			read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
+		elif [ "$ARCH" = "x86_64" ]; then
+			read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
+			read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM_x86_64" && printf '\0' )
+		else
+			echo "Architecture not supported."
+			exit 0
+		fi
+	# x86 is unsupported, x86_64 is supported.
+	elif [ "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! -z "$DOWNLOAD_x86_64" ]; then
+		if [ "$ARCH" = "x86_64" ]; then
+			read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
+			read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM_x86_64" && printf '\0' )
+		else
+			echo "Architecture not supported."
+			exit 0
+		fi
+	else
+		echo "Check info file!"
+		exit 1
+	fi
 }
 
 package_exists(){
@@ -96,48 +126,43 @@ download_source(){
 	fi
 	
 	# pass the array to the function later
-	local -n local_array_download=$2
-	if [ ! -z "$1" ] && [ "$1" != "UNSUPPORTED" ] && [ "$1" != "UNTESTED" ]; then
-		for d in ${local_array_download[@]}; do
-			if [ -f `basename $d` ]; then
-				echo "[d] `basename $d`"
-			else
-				echo "[ ] `basename $d`"
-				wget $cert -c $d
-			fi
-		done
-	fi
+	local -n local_array_download=$1
+	for d in ${local_array_download[@]}; do
+		if [ -f `basename $d` ]; then
+			echo "[d] `basename $d`"
+		else
+			echo "[ ] `basename $d`"
+			wget $cert -c $d
+		fi
+	done
 }
 
 check_md5sum_source(){
-	if [ ! -z "$1" ] && [ "$1" != "UNSUPPORTED" ] && [ "$1" != "UNTESTED" ]; then
-		
-		local -n local_array_download=$2 # ARRAY_DOWNLOAD(_x86_64)
-		local -n local_array_md5sum=$3 # ARRAY_MD5SUM(_x86_64)
-		
-		md5summary=""
-		# determine position in array
-		for (( d=0; d<${#local_array_download[@]}; d++ )); do
-			NAME_d=$(basename ${local_array_download[$d]})
-			if [ ! -f "$NAME_d" ]; then
-				# echo "[ ] ${local_array_download[$d]}"
+	local -n local_array_download=$1 # ARRAY_DOWNLOAD(_x86_64)
+	local -n local_array_md5sum=$2 # ARRAY_MD5SUM(_x86_64)
+	
+	md5summary=""
+	# determine position in array
+	for (( d=0; d<${#local_array_download[@]}; d++ )); do
+		NAME_d=$(basename ${local_array_download[$d]})
+		if [ ! -f "$NAME_d" ]; then
+			# echo "[ ] ${local_array_download[$d]}"
+			#exit 0
+			echo "[ ] $NAME_d"
+			md5summary+="missing "
+		elif [ -f "$NAME_d" ]; then
+			MD5SUM_d=$(md5sum $NAME_d | awk '{print $1}')
+			if [ "$MD5SUM_d" = "${local_array_md5sum[$d]}" ]; then
+				#echo "[m] $MD5SUM_d $NAME_d"
+				echo "[m] $NAME_d"
+			elif [ "$MD5SUM_d" != "${local_array_md5sum[$d]}" ]; then
+				#echo "[e] ${local_array_download[$d]}"
 				#exit 0
-				echo "[ ] $NAME_d"
-				md5summary+="missing "
-			elif [ -f "$NAME_d" ]; then
-				MD5SUM_d=$(md5sum $NAME_d | awk '{print $1}')
-				if [ "$MD5SUM_d" = "${local_array_md5sum[$d]}" ]; then
-					#echo "[m] $MD5SUM_d $NAME_d"
-					echo "[m] $NAME_d"
-				elif [ "$MD5SUM_d" != "${local_array_md5sum[$d]}" ]; then
-					#echo "[e] ${local_array_download[$d]}"
-					#exit 0
-					echo "[e] $NAME_d"
-					md5summary+="error "
-				fi
+				echo "[e] $NAME_d"
+				md5summary+="error "
 			fi
-		done
-	fi
+		fi
+	done
 	md5summary_array=( $md5summary )
 }
 
@@ -147,43 +172,12 @@ report_md5sum_source(){
 		exit 1
 	fi
 }
-update_md5sum_source(){
-		if [ ! -z "$1" ] && [ "$1" != "UNSUPPORTED" ] && [ "$1" != "UNTESTED" ]; then
-		
-		local -n local_array_download=$2 # ARRAY_DOWNLOAD(_x86_64)
-		local -n local_array_md5sum=$3 # ARRAY_MD5SUM(_x86_64)
-		
-		# determine position in array (d = index)
-		for (( d=0; d<${#local_array_download[@]}; d++ )); do
-			NAME_d=$(basename ${local_array_download[$d]})
-			if [ ! -f "$NAME_d" ]; then
-				#echo "[ ] ${local_array_download[$d]}"
-				#exit 0
-				echo "[ ] $NAME_d"
-			elif [ -f "$NAME_d" ]; then
-				MD5SUM_new=$(md5sum $NAME_d | awk '{print $1}' | sed 's:"::g')
-				if [ "$MD5SUM_new" = "${local_array_md5sum[$d]}" ]; then
-					#echo "[m] $MD5SUM_new $NAME_d"
-					echo "[m] $NAME_d"
-				elif [ "$MD5SUM_new" != "$MD5SUM_old" ]; then
-					sed -i "s|${local_array_md5sum[$d]}|${MD5SUM_new}|" $PRGNAM.info
-					echo "[u] $NAME_d"
-					#echo "[u] ${local_array_md5sum[$d]} -> $MD5SUM_new $NAME_d"
-					#exit 0
-				fi
-			fi
-		done
-	fi
-}
+
 download_source_title(){
 	echo "--- download ([d] source already downloaded, [ ] source missing)"
 }
 check_md5sum_source_title(){
 	echo "--- check md5sum ([m] match, [e] error (mismatch), [ ] source missing)"
-}
-
-update_md5sum_source_title(){
-	echo "--- update md5sum ([m] match, [u] update, [ ] source missing)"
 }
 
 build(){
@@ -215,10 +209,8 @@ helper() {
 	echo "  -w,   --warn              warn if package will overwrite files"
 	echo "  -r,   --rebuild           rebuild package"
 	echo "  -ri,  --reinstall         rebuild and reinstall package"
-	echo "  -d,   --download          download sources and exit"
+	echo "  -d,   --download          download and check sources for $ARCH and exit"
 	echo "  -nc,  --no-certificate    do not check download certificate"
-	echo "  -cm,  --check-md5         check sources md5sum and exit"
-	echo "  -um,  --update-md5        update sources md5sum and exit"
 	echo "  -h,   --help              print this help"
 }
 
@@ -245,12 +237,6 @@ options(){
 			;;
 			-nc|--no-certificate)
 				SBO_DOWNLOAD_NO_CERTIFICATE="yes"
-			;;
-			-cm|--check-md5)
-				SBO_CHECK_MD5SUM="yes"
-			;;
-			-um|--update-md5)
-				SBO_UPDATE_MD5SUM="yes"
 			;;
 			-h|--help)
 				helper
@@ -281,22 +267,9 @@ main(){
 	# functions to execute pre-build
 	if [ $SBO_DOWNLOAD = "yes" ]; then
 		download_source_title
-		download_source "$DOWNLOAD" ARRAY_DOWNLOAD
-		download_source "$DOWNLOAD_x86_64" ARRAY_DOWNLOAD_x86_64
-		exit 0
-	fi
-	
-	if [ $SBO_CHECK_MD5SUM = "yes" ]; then
+		download_source ARRAY_DOWNLOAD
 		check_md5sum_source_title
-		check_md5sum_source "$DOWNLOAD" ARRAY_DOWNLOAD ARRAY_MD5SUM
-		check_md5sum_source "$DOWNLOAD_x86_64" ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
-		exit 0
-	fi
-	
-	if [ $SBO_UPDATE_MD5SUM = "yes" ]; then
-		update_md5sum_source_title
-		update_md5sum_source "$DOWNLOAD" ARRAY_DOWNLOAD ARRAY_MD5SUM
-		update_md5sum_source "$DOWNLOAD_x86_64" ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
+		check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
 		exit 0
 	fi
 	
@@ -314,11 +287,9 @@ main(){
 		exit 0
 	else
 		download_source_title
-		download_source "$DOWNLOAD" ARRAY_DOWNLOAD
-		download_source "$DOWNLOAD_x86_64" ARRAY_DOWNLOAD_x86_64
-		update_md5sum_source_title
-		check_md5sum_source "$DOWNLOAD" ARRAY_DOWNLOAD ARRAY_MD5SUM
-		check_md5sum_source "$DOWNLOAD_x86_64" ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
+		download_source ARRAY_DOWNLOAD
+		check_md5sum_source_title
+		check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
 		report_md5sum_source
 		build
 	fi

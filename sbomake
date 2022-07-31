@@ -14,6 +14,9 @@ SBO_TEMPLATE_RUBYGEM="no"
 SBO_TEMPLATE_DOINST="no"
 SBO_TEMPLATE_DOUNINST="no"
 SBO_TEMPLATE_DESKTOP="no"
+SBO_DOWNLOAD="no"
+SBO_DOWNLOAD_NO_CERTIFICATE="no"
+SBO_UPDATE_MD5SUM="no"
 
 is_imput_empty(){
 	if [ "$1" = "" ]; then
@@ -92,6 +95,77 @@ prepare_info_template(){
 	sed -i "s:email address of author:$EMAIL:" $DIRNAM.info
 }
 
+load_info(){
+	. $DIRNAM.info
+	if [ "$DIRNAM" != "$PRGNAM" ]; then
+		echo "SlackBuild folder name is different than PRGNAM!"
+		exit 1
+	fi
+}
+
+load_all_sources(){
+# Load sources and their md5sums as arrays
+	if [ "$DOWNLOAD" != "UNSUPPORTED" ]; then
+		read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
+		read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
+		x86="yes"
+	fi
+	if [ "$DOWNLOAD_x86_64" != "UNSUPPORTED" ] && [ ! -z $DOWNLOAD_x86_64 ]; then
+		read -r -d '' -a ARRAY_DOWNLOAD_x86_64 < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
+		read -r -d '' -a ARRAY_MD5SUM_x86_64 < <( echo "$MD5SUM_x86_64" && printf '\0' )
+		x86_64="yes"
+	fi
+}
+
+empty_sources(){
+	if [ -z "$@" ]; then
+		echo "$1 is empty in $PRGNAM.info!"
+		exit 1
+	fi
+}
+
+download_source(){
+	# some sources (e.g. geneconv) need this to be downloaded
+	if [ $SBO_DOWNLOAD_NO_CERTIFICATE = "yes" ]; then
+		cert="--no-check-certificate"
+	fi
+	
+	# pass the array to the function later
+	local -n local_array_download=$1
+	for d in ${local_array_download[@]}; do
+		if [ -f `basename $d` ]; then
+			echo "[d] `basename $d`"
+		else
+			echo "[ ] `basename $d`"
+			wget $cert -c $d
+		fi
+	done
+}
+
+update_md5sum_source(){
+	local -n local_array_download=$1 # ARRAY_DOWNLOAD(_x86_64)
+	local -n local_array_md5sum=$2 # ARRAY_MD5SUM(_x86_64)
+		
+	for (( d=0; d<${#local_array_download[@]}; d++ )); do
+		NAME_d=$(basename ${local_array_download[$d]})
+		if [ ! -f "$NAME_d" ]; then
+			echo "[ ] $NAME_d"
+		elif [ -f "$NAME_d" ]; then
+			MD5SUM_new=$(md5sum $NAME_d | awk '{print $1}' | sed 's:"::g')
+			if [ "$MD5SUM_new" = "${local_array_md5sum[$d]}" ]; then
+				echo "[m] $NAME_d"
+			elif [ "$MD5SUM_new" != "$MD5SUM_old" ]; then
+				sed -i "s|${local_array_md5sum[$d]}|${MD5SUM_new}|" $PRGNAM.info
+				echo "[u] $NAME_d"
+			fi
+		fi
+	done
+}
+
+update_md5sum_source_title(){
+	echo "--- update md5sum ([m] match, [u] update, [ ] source missing)"
+}
+
 helper() {
 	echo "Run `basename $0` from within the SlackBuild folder."
 	echo "Usage: `basename $0` [template] [option]"
@@ -101,6 +175,9 @@ helper() {
 	echo "  -di,  --doinst            copy doinst.sh file"
 	echo "  -du,  --douninst          copy douninst.sh file"
 	echo "  -de,  --desktop           copy template.desktop file"
+	echo "  -d,   --download          download all sources and exit"
+	echo "  -nc,  --no-certificate    do not check download certificate"
+	echo "  -um,  --update-md5        update sources md5sum and exit"
 	echo "  -h,   --help              print this help"
 }
 
@@ -136,6 +213,15 @@ options(){
 			;;
 			-de|--desktop)
 				SBO_TEMPLATE_DESKTOP="yes"
+			;;
+			-d|--download)
+				SBO_DOWNLOAD="yes"
+			;;
+			-nc|--no-certificate)
+				SBO_DOWNLOAD_NO_CERTIFICATE="yes"
+			;;
+			-um|--update-md5)
+				SBO_UPDATE_MD5SUM="yes"
 			;;
 			-h|--help)
 				helper
@@ -184,8 +270,32 @@ main(){
 		prepare_slackbuild_template
 		prepare_slackdesc_template
 		prepare_info_template
-		
 		exit 0
+	fi
+	
+	if [ "$SBO_DOWNLOAD" = "yes" ]; then
+		load_info
+		empty_sources "$DOWNLOAD" "$MD5SUM" "$DOWNLOAD_x86_64" "$MD5SUM_x86_64"
+		load_all_sources
+		if [ "$x86" = "yes" ]; then
+			download_source ARRAY_DOWNLOAD
+		fi
+		if [ "$x86_64" = "yes" ]; then
+			download_source ARRAY_DOWNLOAD_x86_64
+		fi
+	fi
+	
+	if [ $SBO_UPDATE_MD5SUM = "yes" ]; then
+		load_info
+		empty_sources "$DOWNLOAD" "$MD5SUM" "$DOWNLOAD_x86_64" "$MD5SUM_x86_64"
+		load_all_sources
+		update_md5sum_source_title
+		if [ "$x86" = "yes" ]; then
+			update_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
+		fi
+		if [ "$x86_64" = "yes" ]; then
+			update_md5sum_source ARRAY_DOWNLOAD_x86_64 ARRAY_MD5SUM_x86_64
+		fi
 	fi
 	
 	exit 0
