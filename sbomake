@@ -118,8 +118,8 @@ load_all_sources(){
 }
 
 empty_sources(){
-	if [ -z "$@" ]; then
-		echo "$1 is empty in $PRGNAM.info!"
+	if [ -z "$1" ]; then
+		echo "Sources/md5sum empty in $PRGNAM.info!"
 		exit 1
 	fi
 }
@@ -275,7 +275,10 @@ main(){
 	
 	if [ "$SBO_DOWNLOAD" = "yes" ]; then
 		load_info
-		empty_sources "$DOWNLOAD" "$MD5SUM" "$DOWNLOAD_x86_64" "$MD5SUM_x86_64"
+		empty_sources "$DOWNLOAD"
+		empty_sources "$MD5SUM"
+		empty_sources "$DOWNLOAD_x86_64"
+		empty_sources "$MD5SUM_x86_64"
 		load_all_sources
 		if [ "$x86" = "yes" ]; then
 			download_source ARRAY_DOWNLOAD
@@ -287,7 +290,10 @@ main(){
 	
 	if [ $SBO_UPDATE_MD5SUM = "yes" ]; then
 		load_info
-		empty_sources "$DOWNLOAD" "$MD5SUM" "$DOWNLOAD_x86_64" "$MD5SUM_x86_64"
+		empty_sources "$DOWNLOAD"
+		empty_sources "$MD5SUM"
+		empty_sources "$DOWNLOAD_x86_64"
+		empty_sources "$MD5SUM_x86_64"
 		load_all_sources
 		update_md5sum_source_title
 		if [ "$x86" = "yes" ]; then
