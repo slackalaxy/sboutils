@@ -68,42 +68,25 @@ does_package_exist(){
 }
 
 load_sources(){
-# Load sources and their md5sums as arrays
+	if [ "$ARCH" = "x86" ] && [ "$DOWNLOAD" = "UNSUPPORTED" ]; then
+		echo "$ARCH is not supported"
+		exit 0
+	fi
+	if [ "$ARCH" = "x86_64" ] && [ "$DOWNLOAD_x86_64" = "UNSUPPORTED" ]; then
+		echo "$ARCH is not supported"
+		exit 0
+	fi
+	if [ "$ARCH" = "x86_64" ] && [ "$DOWNLOAD_x86_64" = "UNTESTED" ]; then
+		echo "$ARCH is untested"
+		exit 0
+	fi
 	
-	# default: sources for both arch are on the DOWNLOAD line
-	if [ "$DOWNLOAD" != "UNSUPPORTED" ] && [ -z "$DOWNLOAD_x86_64" ]; then
-		read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
-		read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
-	
-	# x86 app that may run on 64bit
-	elif [ "$DOWNLOAD_86_64" = "UNTESTED" ]; then
-		read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
-		read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
-	# each arch has different sources
-	elif [ "$DOWNLOAD" != "UNSUPPORTED" ] && [ "$DOWNLOAD" != "UNTESTED" ] && [ ! -z "$DOWNLOAD_x86_64" ] && [ "$DOWNLOAD_x86_64" != "UNSUPPORTED" ]; then
-		# get sources only for current arch
-		if [ "$ARCH" = "x86" ]; then
-			read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
-			read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
-		elif [ "$ARCH" = "x86_64" ]; then
-			read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
-			read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM_x86_64" && printf '\0' )
-		else
-			echo "Architecture not supported."
-			exit 0
-		fi
-	# x86 is unsupported, x86_64 is supported.
-	elif [ "$DOWNLOAD" = "UNSUPPORTED" ] && [ ! -z "$DOWNLOAD_x86_64" ]; then
-		if [ "$ARCH" = "x86_64" ]; then
-			read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
-			read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM_x86_64" && printf '\0' )
-		else
-			echo "Architecture not supported."
-			exit 0
-		fi
+	if [ "$ARCH" = "x86_64" ] && [ ! -z $DOWNLOAD_x86_64 ]; then
+		read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
+		read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM_x86_64" && printf '\0' )
 	else
-		echo "Check info file!"
-		exit 1
+		read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
+		read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
 	fi
 }
 

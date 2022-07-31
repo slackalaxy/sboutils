@@ -110,7 +110,7 @@ load_all_sources(){
 		read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
 		x86="yes"
 	fi
-	if [ "$DOWNLOAD_x86_64" != "UNSUPPORTED" ] && [ ! -z $DOWNLOAD_x86_64 ]; then
+	if [ "$DOWNLOAD_x86_64" != "UNSUPPORTED" ] && [ "$DOWNLOAD_x86_64" != "UNTESTED" ] && [ ! -z $DOWNLOAD_x86_64 ]; then
 		read -r -d '' -a ARRAY_DOWNLOAD_x86_64 < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
 		read -r -d '' -a ARRAY_MD5SUM_x86_64 < <( echo "$MD5SUM_x86_64" && printf '\0' )
 		x86_64="yes"
@@ -118,8 +118,17 @@ load_all_sources(){
 }
 
 empty_sources(){
-	if [ -z "$1" ]; then
-		echo "Sources/md5sum empty in $PRGNAM.info!"
+	if [ -z $DOWNLOAD ] && [ -z $DOWNLOAD_x86_64 ]; then
+		echo "$PRGNAM.info has empty sources fields!"
+		exit 1
+	elif [ -z $MD5SUM ] && [ -z $MD5SUM_x86_64 ]; then
+		echo "$PRGNAM.info has empty md5sum fields!"
+		exit 1
+	elif [ "$DOWNLOAD" = "UNSUPPORTED" ] && [ -z $DOWNLOAD_x86_64 ]; then
+		echo "$PRGNAM.info has empty sources fields!"
+		exit 1
+	elif [ "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ -z $DOWNLOAD ]; then
+		echo "$PRGNAM.info has empty sources fields!"
 		exit 1
 	fi
 }
@@ -275,10 +284,7 @@ main(){
 	
 	if [ "$SBO_DOWNLOAD" = "yes" ]; then
 		load_info
-		empty_sources "$DOWNLOAD"
-		empty_sources "$MD5SUM"
-		empty_sources "$DOWNLOAD_x86_64"
-		empty_sources "$MD5SUM_x86_64"
+		empty_sources
 		load_all_sources
 		if [ "$x86" = "yes" ]; then
 			download_source ARRAY_DOWNLOAD
@@ -290,10 +296,7 @@ main(){
 	
 	if [ $SBO_UPDATE_MD5SUM = "yes" ]; then
 		load_info
-		empty_sources "$DOWNLOAD"
-		empty_sources "$MD5SUM"
-		empty_sources "$DOWNLOAD_x86_64"
-		empty_sources "$MD5SUM_x86_64"
+		empty_sources
 		load_all_sources
 		update_md5sum_source_title
 		if [ "$x86" = "yes" ]; then
