@@ -102,9 +102,9 @@ Usage: sborun [options]
 Options:
   -i,   --install           build and install package
   -u,   --upgrade           build and upgrade package
-  -d,   --download          download and check sources for x86_64 and exit
-  -nc,  --no-certificate    do not check download certificate
+  -d,   --download          download, check sources and exit
   -f    --force             force operation
+  -nc,  --no-certificate    do not check download certificate
   -h,   --help              print this help
 ```
 
