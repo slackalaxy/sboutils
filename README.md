@@ -94,7 +94,7 @@ system/squidclamav
 ```
 
 ## sborun
-This runs a SlackBuild. It should be run from within the folder containing the SlackBuild and its associated files (*.info, slack-desc,...). It can download sources, check md5sum, as well as build and install the ready package.
+This runs a SlackBuild. It should be run from within the folder containing the SlackBuild and its associated files (*.info, slack-desc,...). It can download sources, check md5sum, as well as build and install the ready package. If you just run it without any additional options it will only build the package.
 ```
 bash-5.1$ sborun -h
 Run sborun from within the SlackBuild containing folder.
