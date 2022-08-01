@@ -170,10 +170,7 @@ install_warn(){
 }
 
 install_package(){
-	if [ ! -f $PKGS/$PACKAGE_NAME ]; then
-		echo "Package $PACKAGE_NAME does not exist."
-		exit 0
-	elif [ ! -z "$PACKAGE_INST" ]; then
+	if [ ! -z "$PACKAGE_INST" ]; then
 		echo "Package $PACKAGE_NAME is already installed."
 		exit 0
 	else
@@ -183,10 +180,7 @@ install_package(){
 }
 
 upgrade_package(){
-	if [ ! -f $PKGS/$PACKAGE_NAME ]; then
-		echo "Package $PACKAGE_NAME does not exist."
-		exit 0
-	elif [ -z "$PACKAGE_INST" ]; then
+	if [ -z "$PACKAGE_INST" ]; then
 		echo "Package $PACKAGE_NAME is not installed."
 		exit 0
 	else
@@ -195,11 +189,7 @@ upgrade_package(){
 }
 
 reinstall_package(){
-	if [ ! -f $PKGS/$PACKAGE_NAME ]; then
-		echo "Package $PACKAGE_NAME does not exist."
-	else
-		upgradepkg --reinstall --install-new $PKGS/$PACKAGE_NAME
-	fi
+	upgradepkg --reinstall --install-new $PKGS/$PACKAGE_NAME
 }
 
 helper() {
@@ -266,15 +256,7 @@ main(){
 		check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
 		exit 0
 	fi
-	if [ "$SBO_INSTALL" = "yes" ]; then
-		install_package
-		exit 0
-	fi
 
-	if [ "$SBO_UPGRADE" = "yes" ]; then
-		upgrade_package
-		exit 0
-	fi
 	# build, install and upgrade functions below cannot be used as regular user
 	check_installpkg
 	
@@ -294,6 +276,9 @@ main(){
 		exit 0
 	elif [ ! -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ]; then
 		echo "Package $PACKAGE_NAME is already installed."
+		exit 0
+	elif [ -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ] && [ "$SBO_UPGRADE" = "yes" ]; then
+		echo "Package $PACKAGE_NAME is not installed."
 		exit 0
 	else
 		download_source_title
