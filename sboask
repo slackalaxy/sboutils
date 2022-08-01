@@ -6,6 +6,7 @@ SBO_INFO="no"
 SBO_DEPS="no"
 SBO_DEPENDENTS="no"
 SBO_FIND="no"
+SBO_ISINST="no"
 
 is_imput_empty(){
 	if [ "$1" = "" ]; then
@@ -155,6 +156,7 @@ helper() {
 	echo "Usage: `basename $0` [task] SlackBuild"
 	echo "Tasks:"
 	echo "  info           display information about SlackBuild"
+	echo "  isinst         show if a package is installed"
 	echo "  dep            display dependencies chain for a SlackBuild"
 	echo "  dependent      display what depends on a SlackBuild"
 	echo "  find|search    search for a SlackBuild"         
@@ -165,6 +167,9 @@ options(){
 	case $1 in
 		info)
 			SBO_INFO="yes"
+		;;
+		isinst)
+			SBO_ISINST="yes"
 		;;
 		dep)
 			SBO_DEPS="yes"
@@ -199,6 +204,10 @@ main(){
 		display_searched "$2"
 		dependencies_title
 		display_requires "$2"
+		exit 0
+	fi
+	if [ "$SBO_ISINST" = "yes" ] && [ ! -z "$2" ]; then
+		display_searched "$2"
 		exit 0
 	fi
 	if [ "$SBO_FIND" = "yes" ]; then
