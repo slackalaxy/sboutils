@@ -89,18 +89,6 @@ load_sources(){
 	fi
 }
 
-package_exists(){
-	if [ -f "$PKGS/$PACKAGE_NAME" ]; then
-		echo "Package $PACKAGE_NAME exists in $PKGS"
-	fi
-}
-
-package_installed(){
-	if [ ! -z "$PACKAGE_INST" ]; then
-		echo "Package $PACKAGE_NAME installed"
-	fi
-}
-
 download_source(){
 	# some sources (e.g. geneconv) need this to be downloaded
 	if [ $SBO_DOWNLOAD_NO_CERTIFICATE = "yes" ]; then
@@ -202,7 +190,6 @@ upgrade_package(){
 		echo "Package $PACKAGE_NAME is not installed."
 		exit 0
 	else
-		install_warn
 		upgradepkg $PKGS/$PACKAGE_NAME
 	fi
 }
@@ -279,32 +266,18 @@ main(){
 	# build, install and upgrade functions below cannot be used as regular user
 	check_installpkg
 	
-	if [ "$SBO_INSTALL" = "yes" ]; then
-		install_package
-		exit 0
+	if [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "no" ]; then
+		echo "Package $PACKAGE_NAME already exists."
+	elif [ ! -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ]; then
+		echo "Package $PACKAGE_NAME already installed."
+	else
+		download_source_title
+		download_source ARRAY_DOWNLOAD
+		check_md5sum_source_title
+		check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
+		report_md5sum_source
+		build
 	fi
-
-	if [ "$SBO_UPGRADE" = "yes" ]; then
-		upgrade_package
-		exit 0
-	fi
-
-	if [ "$SBO_FORCE" = "yes" ] && [ "$SBO_INSTALL" = "yes" ]; then
-		reinstall_package
-		exit 0
-	fi
-
-	if [ "$SBO_FORCE" = "yes" ] && [ "$SBO_UPGRADE" = "yes" ]; then
-		reinstall_package
-		exit 0
-	fi
-	
-	download_source_title
-	download_source ARRAY_DOWNLOAD
-	check_md5sum_source_title
-	check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
-	report_md5sum_source
-	build
 		
 	# functions to execute post-build
 	if [ "$SBO_INSTALL" = "yes" ]; then
