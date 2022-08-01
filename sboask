@@ -55,6 +55,25 @@ display_info(){
 	echo ""
 }
 
+display_searched(){
+	installed=$(find /var/lib/pkgtools/packages/ -name "${1}-*")
+	installed_array=( $installed )
+	if [ ! -z "$installed" ]; then
+		for i in ${installed_array[@]}; do
+			pkg+=$(echo "`basename ${i%-*-*-*}` ")
+		done
+
+		pkg_array=( $pkg )
+		if [[ " ${pkg_array[*]} " =~ " ${1} " ]]; then
+			echo "[i] $1"
+		elif [[ ! " ${pkg_array[*]} " =~ " ${1} " ]]; then
+			echo "[ ] $1"
+		fi
+	elif [ -z "$installed" ]; then
+		echo "[ ] $1"
+	fi
+}
+
 display_requires(){
 	requires_array=( $REQUIRES )
 
@@ -177,6 +196,7 @@ main(){
 	if [ "$SBO_INFO" = "yes" ]; then
 		check_location "$2" strict
 		display_info "$2"
+		display_searched "$2"
 		dependencies_title
 		display_requires "$2"
 		exit 0
