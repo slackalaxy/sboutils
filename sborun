@@ -279,15 +279,19 @@ main(){
 		exit 0
 	fi
 	
-	if [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "no" ]; then
-		echo "Package $PACKAGE_NAME already exists."
-		exit 0
-	elif [ ! -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ]; then
+	# is package already installed?
+	if [ ! -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ]; then
 		echo "Package $PACKAGE_NAME is already installed."
 		exit 0
+	# is package already built?
+	elif [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "no" ]; then
+		echo "Package $PACKAGE_NAME already exists."
+		exit 0
+	# do we want to upgrade an non-installed package?
 	elif [ -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ] && [ "$SBO_UPGRADE" = "yes" ]; then
 		echo "Package $PACKAGE_NAME is not installed."
 		exit 0
+	# hope that covers it... then, proceed
 	else
 		download_source_title
 		download_source ARRAY_DOWNLOAD
