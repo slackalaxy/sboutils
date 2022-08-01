@@ -195,7 +195,11 @@ upgrade_package(){
 }
 
 reinstall_package(){
-	upgradepkg --reinstall --install-new $PKGS/$PACKAGE_NAME
+	if [ ! -f $PKGS/$PACKAGE_NAME ]; then
+		echo "Package $PACKAGE_NAME does not exist."
+	else
+		upgradepkg --reinstall --install-new $PKGS/$PACKAGE_NAME
+	fi
 }
 
 helper() {
@@ -266,10 +270,23 @@ main(){
 	# build, install and upgrade functions below cannot be used as regular user
 	check_installpkg
 	
+	# functions to execute post-build
+	if [ "$SBO_INSTALL" = "yes" ] && [ "$SBO_FORCE" = "yes" ]; then
+		reinstall_package
+		exit 0
+	fi
+
+	if [ "$SBO_UPGRADE" = "yes" ] && [ "$SBO_FORCE" = "yes" ]; then
+		reinstall_package
+		exit 0
+	fi
+	
 	if [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "no" ]; then
 		echo "Package $PACKAGE_NAME already exists."
+		exit 0
 	elif [ ! -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ]; then
-		echo "Package $PACKAGE_NAME already installed."
+		echo "Package $PACKAGE_NAME is already installed."
+		exit 0
 	else
 		download_source_title
 		download_source ARRAY_DOWNLOAD
