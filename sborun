@@ -259,8 +259,16 @@ main(){
 
 	# build, install and upgrade functions below cannot be used as regular user
 	check_installpkg
+	if [ "$SBO_INSTALL" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ]; then
+		install_package
+		exit 0
+	fi
 	
-	# functions to execute post-build
+	if [ "$SBO_UPGRADE" = "yes" ] && [ -z "$PACKAGE_INST" ]; then
+		upgrade_package
+		exit 0
+	fi
+		
 	if [ "$SBO_INSTALL" = "yes" ] && [ "$SBO_FORCE" = "yes" ]; then
 		reinstall_package
 		exit 0
