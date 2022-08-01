@@ -141,7 +141,6 @@ check_md5sum_source(){
 
 report_md5sum_source(){
 	if [[ " ${md5summary_array[*]} " =~ " missing " ]] || [[ " ${md5summary_array[*]} " =~ " error " ]]; then
-		echo "Download sources missing or have md5sum mismatch!"
 		exit 1
 	fi
 }
@@ -180,12 +179,7 @@ install_package(){
 }
 
 upgrade_package(){
-	if [ -z "$PACKAGE_INST" ]; then
-		echo "Package $PACKAGE_NAME is not installed."
-		exit 0
-	else
-		upgradepkg $PKGS/$PACKAGE_NAME
-	fi
+	upgradepkg $PKGS/$PACKAGE_NAME
 }
 
 reinstall_package(){
@@ -259,11 +253,14 @@ main(){
 
 	# build, install and upgrade functions below cannot be used as regular user
 	check_installpkg
+	
+	# do we want to install a package, already built?
 	if [ "$SBO_INSTALL" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ]; then
 		install_package
 		exit 0
 	fi
 	
+	# do we want to upgarde a package (already installed)?
 	if [ "$SBO_UPGRADE" = "yes" ] && [ -z "$PACKAGE_INST" ]; then
 		upgrade_package
 		exit 0
