@@ -118,16 +118,16 @@ load_all_sources(){
 }
 
 empty_sources(){
-	if [ -z $DOWNLOAD ] && [ -z $DOWNLOAD_x86_64 ]; then
+	if [ -z "$DOWNLOAD" ] && [ -z "$DOWNLOAD_x86_64" ]; then
 		echo "$PRGNAM.info has empty sources fields!"
 		exit 1
-	elif [ -z $MD5SUM ] && [ -z $MD5SUM_x86_64 ]; then
+	elif [ -z "$MD5SUM" ] && [ -z "$MD5SUM_x86_64" ]; then
 		echo "$PRGNAM.info has empty md5sum fields!"
 		exit 1
-	elif [ "$DOWNLOAD" = "UNSUPPORTED" ] && [ -z $DOWNLOAD_x86_64 ]; then
+	elif [ "$DOWNLOAD" = "UNSUPPORTED" ] && [ -z "$DOWNLOAD_x86_64" ]; then
 		echo "$PRGNAM.info has empty sources fields!"
 		exit 1
-	elif [ "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ -z $DOWNLOAD ]; then
+	elif [ "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ -z "$DOWNLOAD" ]; then
 		echo "$PRGNAM.info has empty sources fields!"
 		exit 1
 	fi
@@ -156,11 +156,12 @@ update_md5sum_source(){
 	local -n local_array_md5sum=$2 # ARRAY_MD5SUM(_x86_64)
 		
 	for (( d=0; d<${#local_array_download[@]}; d++ )); do
-		NAME_d=$(basename ${local_array_download[$d]})
+		# Some files may have spaces in the name, so sed it out
+		NAME_d=$(basename ${local_array_download[$d]} | sed 's:%20:\ :g')
 		if [ ! -f "$NAME_d" ]; then
 			echo "[ ] $NAME_d"
 		elif [ -f "$NAME_d" ]; then
-			MD5SUM_new=$(md5sum $NAME_d | awk '{print $1}' | sed 's:"::g')
+			MD5SUM_new=$(md5sum "$NAME_d" | awk '{print $1}' | sed 's:"::g')
 			if [ "$MD5SUM_new" = "${local_array_md5sum[$d]}" ]; then
 				echo "[m] $NAME_d"
 			elif [ "$MD5SUM_new" != "$MD5SUM_old" ]; then

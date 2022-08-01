@@ -91,13 +91,13 @@ load_sources(){
 }
 
 package_exists(){
-	if [ -f $PKGS/$PACKAGE_NAME ]; then
+	if [ -f "$PKGS/$PACKAGE_NAME" ]; then
 		echo "Package $PACKAGE_NAME exists in $PKGS"
 	fi
 }
 
 package_installed(){
-	if [ ! -z $PACKAGE_INST ]; then
+	if [ ! -z "$PACKAGE_INST" ]; then
 		echo "Package $PACKAGE_NAME installed"
 	fi
 }
@@ -110,11 +110,12 @@ download_source(){
 	
 	# pass the array to the function later
 	local -n local_array_download=$1
-	for d in ${local_array_download[@]}; do
-		if [ -f `basename $d` ]; then
-			echo "[d] `basename $d`"
+	for (( d=0; d<${#local_array_download[@]}; d++ )); do
+		NAME_d=$(basename ${local_array_download[$d]} | sed 's:%20:\ :g')
+		if [ -f "$NAME_d" ]; then
+			echo "[d] $NAME_d"
 		else
-			echo "[ ] `basename $d`"
+			echo "[ ] $NAME_d"
 			wget $cert -c $d
 		fi
 	done
@@ -127,14 +128,14 @@ check_md5sum_source(){
 	md5summary=""
 	# determine position in array
 	for (( d=0; d<${#local_array_download[@]}; d++ )); do
-		NAME_d=$(basename ${local_array_download[$d]})
+		NAME_d=$(basename ${local_array_download[$d]} | sed 's:%20:\ :g')
 		if [ ! -f "$NAME_d" ]; then
 			# echo "[ ] ${local_array_download[$d]}"
 			#exit 0
 			echo "[ ] $NAME_d"
 			md5summary+="missing "
 		elif [ -f "$NAME_d" ]; then
-			MD5SUM_d=$(md5sum $NAME_d | awk '{print $1}')
+			MD5SUM_d=$(md5sum "$NAME_d" | awk '{print $1}')
 			if [ "$MD5SUM_d" = "${local_array_md5sum[$d]}" ]; then
 				#echo "[m] $MD5SUM_d $NAME_d"
 				echo "[m] $NAME_d"
