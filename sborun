@@ -255,7 +255,7 @@ main(){
 	check_installpkg
 	
 	# do we want to install a package, already built?
-	if [ "$SBO_INSTALL" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ]; then
+	if [ "$SBO_INSTALL" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "no" ]; then
 		install_package
 		exit 0
 	fi
