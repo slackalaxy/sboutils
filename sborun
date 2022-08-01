@@ -116,7 +116,7 @@ download_source(){
 			echo "[d] $NAME_d"
 		else
 			echo "[ ] $NAME_d"
-			wget $cert -c $d
+			wget $cert -c "${local_array_download[$d]}"
 		fi
 	done
 }
