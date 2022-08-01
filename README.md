@@ -40,6 +40,7 @@ operations, bitmap tracing, text-on-path, flowed text, direct XML
 editing, and more.  It imports formats such as JPEG, PNG, TIFF, and
 others and exports PNG as well as multiple vector-based formats.
 
+[ ] inkscape
 --- dependencies: ([i] installed, [ ] not installed)
 [ ] GraphicsMagick
 [ ] gdl
