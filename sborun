@@ -6,6 +6,7 @@ DIRNAM=$(basename $PWD)
 
 SBO_INSTALL="no"
 SBO_UPGRADE="no"
+SBO_REINSTALL="no"
 SBO_DOWNLOAD="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
 SBO_FORCE="no"
@@ -168,22 +169,41 @@ build(){
 	bash ./$PRGNAM.SlackBuild
 }
 
-install_package(){
-	installpkg $PKGS/$PACKAGE_NAME
-}
-
-upgrade_package(){
-	upgradepkg $PKGS/$PACKAGE_NAME
-}
-
 install_warn(){
 	overwrite=$(installpkg --warn $PKGS/$PACKAGE_NAME)
 	if [ ! -z "$overwrite" ]; then
+		echo "----- Files found on system -----"
 		printf '%s\n' "$overwrite"
-		echo "Files will be overwritten!"
+		echo "----- Files found on system -----"
 		exit 0
 	else
 		echo "installpkg --warn check passed"
+	fi
+}
+
+install_package(){
+	if [ ! -f $PKGS/$PACKAGE_NAME ]; then
+		echo "Package $PACKAGE_NAME does not exist."
+		exit 0
+	elif [ ! -z "$PACKAGE_INST" ]; then
+		echo "Package $PACKAGE_NAME is already installed."
+		exit 0
+	else
+		install_warn
+		installpkg $PKGS/$PACKAGE_NAME
+	fi
+}
+
+upgrade_package(){
+	if [ ! -f $PKGS/$PACKAGE_NAME ]; then
+		echo "Package $PACKAGE_NAME does not exist."
+		exit 0
+	elif [ -z "$PACKAGE_INST" ]; then
+		echo "Package $PACKAGE_NAME is not installed."
+		exit 0
+	else
+		install_warn
+		upgradepkg $PKGS/$PACKAGE_NAME
 	fi
 }
 
@@ -259,28 +279,6 @@ main(){
 	# build, install and upgrade functions below cannot be used as regular user
 	check_installpkg
 	
-	if [ -f $PKGS/$PACKAGE_NAME ] && [ -z "$PACKAGE_INST" ] && [ "$SBO_INSTALL" = "yes" ]; then
-		install_warn
-		install_package
-		exit 0
-	fi
-	
-	if [ -f $PKGS/$PACKAGE_NAME ] || [ ! -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ]; then
-		package_exists
-		package_installed
-		echo "Use -f option to rebuild"
-		exit 0
-	else
-		download_source_title
-		download_source ARRAY_DOWNLOAD
-		check_md5sum_source_title
-		check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
-		report_md5sum_source
-		build
-		install_warn
-	fi
-	
-	# functions to execute post-build
 	if [ "$SBO_INSTALL" = "yes" ]; then
 		install_package
 		exit 0
@@ -291,8 +289,31 @@ main(){
 		exit 0
 	fi
 
-	if [ "$SBO_REINSTALL" = "yes" ]; then
+	if [ "$SBO_FORCE" = "yes" ] && [ "$SBO_INSTALL" = "yes" ]; then
 		reinstall_package
+		exit 0
+	fi
+
+	if [ "$SBO_FORCE" = "yes" ] && [ "$SBO_UPGRADE" = "yes" ]; then
+		reinstall_package
+		exit 0
+	fi
+	
+	download_source_title
+	download_source ARRAY_DOWNLOAD
+	check_md5sum_source_title
+	check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
+	report_md5sum_source
+	build
+		
+	# functions to execute post-build
+	if [ "$SBO_INSTALL" = "yes" ]; then
+		install_package
+		exit 0
+	fi
+
+	if [ "$SBO_UPGRADE" = "yes" ]; then
+		upgrade_package
 		exit 0
 	fi
 
