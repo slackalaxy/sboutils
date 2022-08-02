@@ -6,6 +6,7 @@ SBO_INFO="no"
 SBO_DEPS="no"
 SBO_DEPENDENTS="no"
 SBO_FIND="no"
+SBO_KEY="no"
 SBO_ISINST="no"
 
 is_imput_empty(){
@@ -16,28 +17,37 @@ is_imput_empty(){
 }
 
 check_location(){
-	if [ "$2" = "strict" ]; then
-		LOCATION=$(cat $REPO/SLACKBUILDS.TXT | grep "/${1}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
-	else
-		LOCATION=$(cat $REPO/SLACKBUILDS.TXT | grep -i "${1}" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
-	fi
+	LOCATION=$(cat $REPO/SLACKBUILDS.TXT | grep "/${1}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
+	SEARCHES=$(cat $REPO/SLACKBUILDS.TXT | grep -i "${1}" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
 	
 	LOCATION_array=( $LOCATION )
-	
-	if [ -z "$1" ]; then
-		echo "Input is empty. To view options, use `basename $0` help"
-		exit 1
-	fi
-	
+	SEARCHES_array=( $SEARCHES )
+}
+
+search_not_found(){
 	if [ "${#LOCATION_array[@]}" = "0" ] ; then
-		echo "$1 not found on SlackBuilds.org! Exiting..."
+		echo "=======> $1 not found on SlackBuilds.org!"
 		exit 1
 	fi
 }
 
 location_search(){
-	for i in ${LOCATION_array[@]}; do
+	for i in ${SEARCHES_array[@]}; do
 		echo -e "$i"
+	done
+}
+
+keywords_search(){
+	read -r -d '' -a KEYWORDS_ARRAY < <(grep "${1}" $REPO/TAGS.txt | awk '{print $1}' | sed "s|:||g")
+	for k in ${KEYWORDS_ARRAY[@]}; do
+		key_array+=( "$(cat $REPO/SLACKBUILDS.TXT | grep "/${k}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||") " )
+	done
+	
+	IFS=$'\n' key_sorted=($(sort <<<"${key_array[*]}"))
+	unset IFS
+	
+	for a in ${key_sorted[@]}; do
+		echo $a
 	done
 }
 
@@ -161,7 +171,8 @@ helper() {
 	echo "  isinst         show if a package is installed"
 	echo "  dep            display dependencies chain for a SlackBuild"
 	echo "  dependent      display what depends on a SlackBuild"
-	echo "  find|search    search for a SlackBuild"         
+	echo "  find|search    search for a SlackBuild by name"
+	echo "  key            search by keyword"
 	echo "  help           display this help message"
 }
 
@@ -182,6 +193,9 @@ options(){
 		find|search)
 			SBO_FIND="yes"
 		;;
+		key)
+			SBO_KEY="yes"
+		;;
 		help)
 			helper
 			exit 0
@@ -201,7 +215,7 @@ main(){
 	# but comes first after the function, so it is referred as $1
 	# inside the corresponding functions! A note to my stupid self.
 	if [ "$SBO_INFO" = "yes" ]; then
-		check_location "$2" strict
+		check_location "$2"
 		display_info "$2"
 		display_searched "$2"
 		dependencies_title
@@ -213,19 +227,24 @@ main(){
 		exit 0
 	fi
 	if [ "$SBO_FIND" = "yes" ]; then
-		check_location "$2" nonstrict
+		check_location "$2"
 		location_search
 		exit 0
 	fi
+	if [ "$SBO_KEY" = "yes" ]; then
+		check_location "$2"
+		keywords_search "$2"
+		exit 0
+	fi
 	if [ "$SBO_DEPS" = "yes" ]; then
-		check_location "$2" strict
+		check_location "$2"
 		hoorex_array "$2" DEPS
 		dependencies_title
 		hoorex_output
 		exit 0
 	fi
 	if [ "$SBO_DEPENDENTS" = "yes" ]; then
-		check_location "$2" strict
+		check_location "$2"
 		hoorex_array "$2" DEPENDENTS
 		dependencies_title
 		hoorex_output
