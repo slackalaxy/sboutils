@@ -45,14 +45,16 @@ display_info(){
 	. $REPO/$LOCATION/$1.info
 	SHORTDESC=$(cat $REPO/$LOCATION/slack-desc | grep "${1}: ${1}" | sed "s|${1}: ||")
 	CATEGORY=$(echo "$LOCATION" | sed "s:/$PRGNAM::")
+	keywords=$(grep -i -w "${1}:" $REPO/TAGS.txt | sed "s|${1}: ||g" | sed "s|${1}:||g" | sed "s|,|, |g")
 	echo ""
 	echo "$SHORTDESC"
 	echo "Version:  $VERSION"
 	echo "Category: $CATEGORY"
 	echo "Homepage: $HOMEPAGE"
-
 	echo ""
 	cat $REPO/$LOCATION/README
+	echo ""
+	echo "Keywords: $keywords"
 	echo ""
 }
 
@@ -117,7 +119,7 @@ hoorex_array(){
 }
 
 dependencies_title(){
-	echo "--- dependencies: ([i] installed, [ ] not installed)"
+	echo "--- status and dependencies: ([i] installed, [ ] not installed)"
 }
 
 hoorex_output(){
