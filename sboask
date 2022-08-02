@@ -33,7 +33,9 @@ search_not_found(){
 
 location_search(){
 	for i in ${SEARCHES_array[@]}; do
-		echo -e "$i"
+		nam=$(basename $i)
+		SHORTDESC=$(cat $REPO/$i/slack-desc | grep "${nam}: ${nam}" | awk -F'[()]' '{print $2}' )
+		echo -e "$i ($SHORTDESC)"
 	done
 }
 
@@ -43,11 +45,14 @@ keywords_search(){
 		key_array+=( "$(cat $REPO/SLACKBUILDS.TXT | grep "/${k}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||") " )
 	done
 	
+	# sort by category
 	IFS=$'\n' key_sorted=($(sort <<<"${key_array[*]}"))
 	unset IFS
 	
 	for a in ${key_sorted[@]}; do
-		echo $a
+		nam=$(basename $a)
+		SHORTDESC=$(cat $REPO/$a/slack-desc | grep "${nam}: ${nam}" | awk -F'[()]' '{print $2}' )
+		echo "$a ($SHORTDESC)"
 	done
 }
 
