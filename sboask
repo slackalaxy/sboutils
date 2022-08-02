@@ -29,7 +29,7 @@ check_location(){
 
 search_not_found(){
 	if [ "${#LOCATION_array[@]}" = "0" ] ; then
-		echo "=======> $1 not found on SlackBuilds.org!"
+		echo "$1 not found on SlackBuilds.org!"
 		exit 1
 	fi
 }
@@ -214,11 +214,17 @@ options(){
 main(){
 	options "$1" "$2"
 	
+	if [ "$SBO_ISINST" = "yes" ] && [ ! -z "$2" ]; then
+		display_searched "$2"
+		exit 0
+	fi
+	
+	check_location "$2"
+		
 	# $2 refers to position, e.g.: sboask info $2 (aka slackbuild),
 	# but comes first after the function, so it is referred as $1
 	# inside the corresponding functions! A note to my stupid self.
 	if [ "$SBO_INFO" = "yes" ]; then
-		check_location "$2"
 		search_not_found "$2"
 		display_info "$2"
 		display_searched "$2"
@@ -226,24 +232,17 @@ main(){
 		display_requires "$2"
 		exit 0
 	fi
-	if [ "$SBO_ISINST" = "yes" ] && [ ! -z "$2" ]; then
-		display_searched "$2"
-		exit 0
-	fi
+
 	if [ "$SBO_FIND" = "yes" ]; then
-		check_location "$2"
 		search_not_found "$2"
 		location_search
 		exit 0
 	fi
 	if [ "$SBO_KEY" = "yes" ]; then
-		check_location "$2"
-		search_not_found "$2"
 		keywords_search "$2"
 		exit 0
 	fi
 	if [ "$SBO_DEPS" = "yes" ]; then
-		check_location "$2"
 		search_not_found "$2"
 		hoorex_array "$2" DEPS
 		dependencies_title
@@ -251,7 +250,6 @@ main(){
 		exit 0
 	fi
 	if [ "$SBO_DEPENDENTS" = "yes" ]; then
-		check_location "$2"
 		search_not_found "$2"
 		hoorex_array "$2" DEPENDENTS
 		dependencies_title
