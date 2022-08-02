@@ -16,6 +16,7 @@ SBO_TEMPLATE_DOUNINST="no"
 SBO_TEMPLATE_DESKTOP="no"
 SBO_DOWNLOAD="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
+SBO_CLEAN="no"
 SBO_UPDATE_MD5SUM="no"
 
 is_imput_empty(){
@@ -96,7 +97,12 @@ prepare_info_template(){
 }
 
 load_info(){
-	. $DIRNAM.info
+	if [ -f $DIRNAM.info ]; then
+		. $DIRNAM.info
+	else
+		echo "A $DIRNAM.info not found!"
+		exit 1
+	fi
 	if [ "$DIRNAM" != "$PRGNAM" ]; then
 		echo "SlackBuild folder name is different than PRGNAM!"
 		exit 1
@@ -176,6 +182,14 @@ update_md5sum_source_title(){
 	echo "--- update md5sum ([m] match, [u] update, [ ] source missing)"
 }
 
+clean_source(){
+	local -n local_array_download=$1
+	for (( d=0; d<${#local_array_download[@]}; d++ )); do
+		NAME_d=$(basename ${local_array_download[$d]} | sed 's:%20:\ :g')
+		rm -rf $NAME_d
+	done
+}
+
 helper() {
 	echo "Run `basename $0` from within the SlackBuild folder."
 	echo "Usage: `basename $0` [template] [option]"
@@ -186,6 +200,7 @@ helper() {
 	echo "  -du,  --douninst          copy douninst.sh file"
 	echo "  -de,  --desktop           copy template.desktop file"
 	echo "  -d,   --download          download all sources and exit"
+	echo "  -c,   --clean             clean any sources and exit"
 	echo "  -nc,  --no-certificate    do not check download certificate"
 	echo "  -um,  --update-md5        update sources md5sum and exit"
 	echo "  -h,   --help              print this help"
@@ -226,6 +241,9 @@ options(){
 			;;
 			-d|--download)
 				SBO_DOWNLOAD="yes"
+			;;
+			-c|--clean)
+				SBO_CLEAN="yes"
 			;;
 			-nc|--no-certificate)
 				SBO_DOWNLOAD_NO_CERTIFICATE="yes"
@@ -308,6 +326,16 @@ main(){
 		fi
 	fi
 	
+	if [ $SBO_CLEAN = "yes" ]; then
+		load_info
+		load_all_sources
+		if [ "$x86" = "yes" ]; then
+			clean_source ARRAY_DOWNLOAD
+		fi
+		if [ "$x86_64" = "yes" ]; then
+			clean_source ARRAY_DOWNLOAD_x86_64
+		fi
+	fi
 	exit 0
 }
 
