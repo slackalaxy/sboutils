@@ -21,7 +21,8 @@ Tasks:
   isinst         show if a package is installed
   dep            display dependencies chain for a SlackBuild
   dependent      display what depends on a SlackBuild
-  find|search    search for a SlackBuild
+  find|search    search for a SlackBuild by name
+  key            search by keyword
   help           display this help message
 ```
 As an example, let's consider **inkscape** and display information about it, by `sboask info inkscape`. This outputs the following, where dependencies *lxml*, *numpy* and *potrace* I already have installed:

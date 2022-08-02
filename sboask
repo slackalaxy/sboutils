@@ -9,12 +9,9 @@ SBO_FIND="no"
 SBO_KEY="no"
 SBO_ISINST="no"
 
-is_imput_empty(){
-	if [ "$1" = "" ]; then
-		echo "Input is empty. To view options, use `basename $0` help"
-		exit 1
-	elif [ "$2" = "" ]; then
-		echo "Input is empty. To view options, use `basename $0` help"
+is_input_empty(){
+	if [ -z "$1" ]; then
+		echo "Input is empty. For help, use `basename $0` help."
 		exit 1
 	fi
 }
@@ -29,7 +26,7 @@ check_location(){
 
 search_not_found(){
 	if [ "${#LOCATION_array[@]}" = "0" ] ; then
-		echo "$1 not found on SlackBuilds.org!"
+		echo "$1 not found on SlackBuilds.org."
 		exit 1
 	fi
 }
@@ -204,7 +201,7 @@ options(){
 			exit 0
 		;;
 		*)
-			echo "Unknown option $1"
+			echo "Unknown task $1"
 			exit 1
 		;;
   	esac
@@ -213,6 +210,7 @@ options(){
 
 main(){
 	options "$1" "$2"
+	is_input_empty "$2"
 	
 	if [ "$SBO_ISINST" = "yes" ] && [ ! -z "$2" ]; then
 		display_searched "$2"
@@ -224,7 +222,7 @@ main(){
 	# $2 refers to position, e.g.: sboask info $2 (aka slackbuild),
 	# but comes first after the function, so it is referred as $1
 	# inside the corresponding functions! A note to my stupid self.
-	if [ "$SBO_INFO" = "yes" ]; then
+	if [ "$SBO_INFO" = "yes" ] && [ ! -z "$2" ]; then
 		search_not_found "$2"
 		display_info "$2"
 		display_searched "$2"
@@ -233,23 +231,23 @@ main(){
 		exit 0
 	fi
 
-	if [ "$SBO_FIND" = "yes" ]; then
+	if [ "$SBO_FIND" = "yes" ] && [ ! -z "$2" ]; then
 		search_not_found "$2"
 		location_search
 		exit 0
 	fi
-	if [ "$SBO_KEY" = "yes" ]; then
+	if [ "$SBO_KEY" = "yes" ] && [ ! -z "$2" ]; then
 		keywords_search "$2"
 		exit 0
 	fi
-	if [ "$SBO_DEPS" = "yes" ]; then
+	if [ "$SBO_DEPS" = "yes" ] && [ ! -z "$2" ]; then
 		search_not_found "$2"
 		hoorex_array "$2" DEPS
 		dependencies_title
 		hoorex_output
 		exit 0
 	fi
-	if [ "$SBO_DEPENDENTS" = "yes" ]; then
+	if [ "$SBO_DEPENDENTS" = "yes" ] && [ ! -z "$2" ]; then
 		search_not_found "$2"
 		hoorex_array "$2" DEPENDENTS
 		dependencies_title
@@ -258,8 +256,6 @@ main(){
 	fi
 	exit 0
 }
-
-is_imput_empty "$1" "$2"
 
 main "$1" "$2"
 
