@@ -2,7 +2,9 @@
 
 Tools written in bash to manage SlackBuilds: `sboask` (shows information from SlackBuilds.org), `sborun` (runs a SlackBuild automatically) and `sbomake` (helps with SlackBuild templates). They are heavily inspired by the pkgutils and prt-get outstanding package management tools for CRUX. 
 
-**I am testing sboutils at the moment, by using them to update my Slackbuilds. So, this is still very much work in progress! When I think I am done, I'll make an announcement at LQ. I will appreaciate any feedback, of course: slackalaxy ат gmail.com**
+**I am testing sboutils at the moment, by using them to update my Slackbuilds. So, this is still very much work in progress! When I think I am done, I'll make an announcement at LQ.**
+
+I will appreaciate any feedback: slackalaxy ат gmail.com
 
 ## Requirements
 * [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/)
@@ -16,6 +18,7 @@ bash-5.1$ sboask help
 Usage: sboask [task] SlackBuild
 Tasks:
   info           display information about SlackBuild
+  isinst         show if a package is installed
   dep            display dependencies chain for a SlackBuild
   dependent      display what depends on a SlackBuild
   find|search    search for a SlackBuild
@@ -122,6 +125,7 @@ Options:
   -du,  --douninst          copy douninst.sh file
   -de,  --desktop           copy template.desktop file
   -d,   --download          download all sources and exit
+  -c,   --clean             clean any sources and exit
   -nc,  --no-certificate    do not check download certificate
   -um,  --update-md5        update sources md5sum and exit
   -h,   --help              print this help
