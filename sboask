@@ -13,6 +13,9 @@ is_imput_empty(){
 	if [ "$1" = "" ]; then
 		echo "Input is empty. To view options, use `basename $0` help"
 		exit 1
+	elif [ "$2" = "" ]; then
+		echo "Input is empty. To view options, use `basename $0` help"
+		exit 1
 	fi
 }
 
@@ -216,6 +219,7 @@ main(){
 	# inside the corresponding functions! A note to my stupid self.
 	if [ "$SBO_INFO" = "yes" ]; then
 		check_location "$2"
+		search_not_found "$2"
 		display_info "$2"
 		display_searched "$2"
 		dependencies_title
@@ -228,16 +232,19 @@ main(){
 	fi
 	if [ "$SBO_FIND" = "yes" ]; then
 		check_location "$2"
+		search_not_found "$2"
 		location_search
 		exit 0
 	fi
 	if [ "$SBO_KEY" = "yes" ]; then
 		check_location "$2"
+		search_not_found "$2"
 		keywords_search "$2"
 		exit 0
 	fi
 	if [ "$SBO_DEPS" = "yes" ]; then
 		check_location "$2"
+		search_not_found "$2"
 		hoorex_array "$2" DEPS
 		dependencies_title
 		hoorex_output
@@ -245,6 +252,7 @@ main(){
 	fi
 	if [ "$SBO_DEPENDENTS" = "yes" ]; then
 		check_location "$2"
+		search_not_found "$2"
 		hoorex_array "$2" DEPENDENTS
 		dependencies_title
 		hoorex_output
@@ -254,6 +262,7 @@ main(){
 }
 
 is_imput_empty "$1" "$2"
+
 main "$1" "$2"
 
 # End of file
