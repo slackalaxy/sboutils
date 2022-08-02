@@ -90,11 +90,21 @@ bash-5.1$ sboask dependent libgnome
 [i] libbonoboui
 [i] libgnomemm
 ```
-Finally, searching has a quite simple output (for now). Let's find stuff that sounds like **clamav**, by `sboask find clamav`. This returns a list, showing the category:
+Searching can be done either by name or keywords. Let's find stuff that sounds like **clamav**, by `sboask find clamav`. This returns a list, showing the category:
 ```
 bash-5.1$ sboask find clamav
 network/clamav-unofficial-sigs
 system/clamav
+system/squidclamav
+```
+As a comparison, searching by keywords with `sboask key clamav`, will output:
+```
+bash-5.1$ sboask key clamav
+desktop/thunar-sendto-clamtk
+network/clamav-unofficial-sigs
+system/clamav
+system/clamsmtp
+system/clamtk
 system/squidclamav
 ```
 
