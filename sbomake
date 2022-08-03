@@ -84,6 +84,7 @@ prepare_slackdesc_template(){
 	EMPTY="$(printf '%*s' ${#DIRNAM})"
 	sed -i "s:appname:$DIRNAM:g" slack-desc
 	sed -i "s:       :$EMPTY:" slack-desc
+	sed -i "11,+8 s/.*/${DIRNAM}:/" slack-desc
 }
 
 prepare_info_template(){
