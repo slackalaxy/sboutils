@@ -30,48 +30,43 @@ search_not_found(){
 	fi
 }
 
-location_search(){
-
-	FIND_array=( "$( cat $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | sed "s|SLACKBUILD LOCATION:||g" | awk -F  "/" '{print $3}' | grep -i "${1}")" )
-	for f in ${FIND_array[@]}; do
-		search_array+=( "$(cat $REPO/SLACKBUILDS.TXT | grep "/${f}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||") " )
+search_entry(){
+	
+	local -n SEARCH_ARRAY=$1
+	
+	search_array=""
+	
+	for k in ${SEARCH_ARRAY[@]}; do
+		search_array+=( "$(cat $REPO/SLACKBUILDS.TXT | grep "/${k}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||") " )
 	done
 	
 	# sort by category
-	IFS=$'\n' search_sorted=($(sort <<<"${search_array[*]}"))
+	IFS=$'\n' search_array_sorted=($(sort <<<"${search_array[*]}"))
 	unset IFS
 	
-	for a in ${search_array[@]}; do
+	for a in ${search_array_sorted[@]}; do
 		if [ "$SBO_VERBOSE" = "yes" ]; then
-			nam=$(basename $a)
-			SHORTDESC=$(grep "${nam}: ${nam} (" $REPO/$a/slack-desc | awk -F'[()]' '{print $2}')
+			n=$(basename $a)
+			SHORTDESC=$(grep "${n}: ${n} (" $REPO/$a/slack-desc | awk -F'[()]' '{print $2}')
 			echo "$a ... ($SHORTDESC)"
 		else
 			echo "$a"
 		fi	
 	done
+}
+
+location_search(){
+	FIND_array=( "$( cat $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | sed "s|SLACKBUILD LOCATION:||g" | awk -F  "/" '{print $3}' | grep -i "${1}")" )
+	search_entry FIND_array
 }
 
 keywords_search(){
 	read -r -d '' -a KEYWORDS_ARRAY < <(grep "${1}" $REPO/TAGS.txt | awk '{print $1}' | sed "s|:||g")
-	for k in ${KEYWORDS_ARRAY[@]}; do
-		key_array+=( "$(cat $REPO/SLACKBUILDS.TXT | grep "/${k}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||") " )
-	done
-	
-	# sort by category
-	IFS=$'\n' key_sorted=($(sort <<<"${key_array[*]}"))
-	unset IFS
-	
-	for a in ${key_sorted[@]}; do
-		if [ "$SBO_VERBOSE" = "yes" ]; then
-			nam=$(basename $a)
-			SHORTDESC=$(grep "${nam}: ${nam} (" $REPO/$a/slack-desc | awk -F'[()]' '{print $2}')
-			echo "$a ... ($SHORTDESC)"
-		else
-			echo "$a"
-		fi	
-	done
+	search_entry KEYWORDS_ARRAY
 }
+
+
+
 
 display_info(){
 	. $REPO/$LOCATION/$1.info
