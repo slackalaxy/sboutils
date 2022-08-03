@@ -17,23 +17,13 @@ is_input_empty(){
 	fi
 }
 
-find_category(){
-	CATEGORY=$(grep "/${1}$" $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | awk -F'[//]' '{print $2}')
-}
-
 check_location(){
 	CATEGORY=$(grep "/${1}$" $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | awk -F'[//]' '{print $2}')
 	LOCATION=$CATEGORY/$1
-
-	#SEARCHES=$(cat $REPO/SLACKBUILDS.TXT | grep -i "${1}" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
-	SEARCHES=$(basename `grep -i "${1}" $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | sed "s|SLACKBUILD LOCATION:||g"`)
-	
-	
-	LOCATION_array=( $LOCATION )
-	SEARCHES_array=( $SEARCHES )
 }
 
 search_not_found(){
+	LOCATION_array=( $LOCATION )
 	if [ "${#LOCATION_array[@]}" = "0" ] ; then
 		echo "$1 not found on SlackBuilds.org."
 		exit 1
@@ -41,10 +31,24 @@ search_not_found(){
 }
 
 location_search(){
-	for i in ${SEARCHES_array[@]}; do
-		find_category $i
-		SHORTDESC=$(cat $REPO/$CATEGORY/$i/slack-desc | grep "${nam}: ${nam}" | awk -F'[()]' '{print $2}' )
-		echo -e "$i ($SHORTDESC)"
+
+	FIND_array=( "$( cat $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | sed "s|SLACKBUILD LOCATION:||g" | awk -F  "/" '{print $3}' | grep -i "${1}")" )
+	for f in ${FIND_array[@]}; do
+		search_array+=( "$(cat $REPO/SLACKBUILDS.TXT | grep "/${f}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||") " )
+	done
+	
+	# sort by category
+	IFS=$'\n' search_sorted=($(sort <<<"${search_array[*]}"))
+	unset IFS
+	
+	for a in ${search_array[@]}; do
+		if [ "$SBO_VERBOSE" = "yes" ]; then
+			nam=$(basename $a)
+			SHORTDESC=$(grep "${nam}: ${nam} (" $REPO/$a/slack-desc | awk -F'[()]' '{print $2}')
+			echo "$a ... ($SHORTDESC)"
+		else
+			echo "$a"
+		fi	
 	done
 }
 
@@ -59,15 +63,19 @@ keywords_search(){
 	unset IFS
 	
 	for a in ${key_sorted[@]}; do
-		nam=$(basename $a)
-		SHORTDESC=$(cat $REPO/$a/slack-desc | grep "${nam}: ${nam}" | awk -F'[()]' '{print $2}' )
-		echo "$a ($SHORTDESC)"
+		if [ "$SBO_VERBOSE" = "yes" ]; then
+			nam=$(basename $a)
+			SHORTDESC=$(grep "${nam}: ${nam} (" $REPO/$a/slack-desc | awk -F'[()]' '{print $2}')
+			echo "$a ... ($SHORTDESC)"
+		else
+			echo "$a"
+		fi	
 	done
 }
 
 display_info(){
 	. $REPO/$LOCATION/$1.info
-	SHORTDESC=$(cat $REPO/$LOCATION/slack-desc | grep "${1}: ${1}" | sed "s|${1}: ||")
+	SHORTDESC=$(cat $REPO/$CATEGORY/$PRGNAM/slack-desc | grep "${1}: ${1}" | sed "s|${1}: ||")
 	keywords=$(grep -i -w "${1}:" $REPO/TAGS.txt | sed "s|${1}: ||g" | sed "s|${1}:||g" | sed "s|,|, |g")
 	echo ""
 	echo "$SHORTDESC"
@@ -251,7 +259,7 @@ main(){
 
 	if [ "$SBO_FIND" = "yes" ] && [ ! -z "$2" ]; then
 		#search_not_found "$2"
-		location_search
+		location_search "$2"
 		exit 0
 	fi
 	if [ "$SBO_KEY" = "yes" ] && [ ! -z "$2" ]; then
