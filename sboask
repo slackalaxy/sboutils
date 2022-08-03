@@ -74,47 +74,31 @@ display_info(){
 }
 
 display_searched(){
+	local p=${1} # searched entry
+	# check if dependency ($1) is among installed pkgs
 	installed=$(find /var/lib/pkgtools/packages/ -name "${1}-*")
 	installed_array=( $installed )
+	pkg=""
 	if [ ! -z "$installed" ]; then
 		for i in ${installed_array[@]}; do
 			pkg+=$(echo "`basename ${i%-*-*-*}` ")
 		done
 
 		pkg_array=( $pkg )
-		if [[ " ${pkg_array[*]} " =~ " ${1} " ]]; then
-			echo "[i] $1"
-		elif [[ ! " ${pkg_array[*]} " =~ " ${1} " ]]; then
-			echo "[ ] $1"
+		if [[ " ${pkg_array[*]} " =~ " ${p} " ]]; then
+			echo "[i] $p"
+		elif [[ ! " ${pkg_array[*]} " =~ " ${p} " ]]; then
+			echo "[ ] $p"
 		fi
 	elif [ -z "$installed" ]; then
-		echo "[ ] $1"
+		echo "[ ] $p"
 	fi
 }
 
 display_requires(){
 	requires_array=( $REQUIRES )
-
 	for d in ${requires_array[@]}; do
-		pkg=""
-  
-		# check if dependency ($d) is among installed pkgs
-		installed=$(find /var/lib/pkgtools/packages/ -name "${d}-*" )
-		installed_array=( $installed )
-		if [ ! -z "$installed" ]; then
-			for i in ${installed_array[@]}; do
-				pkg+=$(echo "`basename ${i%-*-*-*}` ")
-			done
-
-			pkg_array=( $pkg )
-			if [[ " ${pkg_array[*]} " =~ " ${d} " ]]; then
-				echo "[i] $d"
-			elif [[ ! " ${pkg_array[*]} " =~ " ${d} " ]]; then
-				echo "[ ] $d"
-			fi
-		elif [ -z "$installed" ]; then
-			echo "[ ] $d"
-		fi
+		display_searched $d
 	done
 }
 
@@ -129,44 +113,17 @@ hoorex_array(){
 		echo "$1 not found at SlackBuilds.org"
 		exit 1
 	fi
+}
 
+hoorex_output(){
 	hoorex_array=( $hoorex )
+	for h in ${hoorex_array[@]}; do
+		display_searched $h
+	done
 }
 
 dependencies_title(){
 	echo "--- status and dependencies: ([i] installed, [ ] not installed)"
-}
-
-hoorex_output(){
-	for d in ${hoorex_array[@]}; do
-		pkg=""
-  
-		# check if dependency ($d) is among installed pkgs
-		installed=$(find /var/lib/pkgtools/packages/ -name "${d}-*" )
-		installed_array=( $installed )
-  
-		if [ ! -z "$installed" ]; then
-			for i in ${installed_array[@]}; do
-			# Name can be tricky, think of <lignome> and <libgnome-keyring>...
-			# So collect here all names that matched the search, removing the
-			# full path and trimming the stuff separated by the last 3 dashes
-			# in the package name.
-				pkg+=$(echo "`basename ${i%-*-*-*}` ")
-			done
-			
-			pkg_array=( $pkg )
-    
-			# search if array contains element or not
-			# https://stackoverflow.com/a/15394738
-			if [[ " ${pkg_array[*]} " =~ " ${d} " ]]; then
-				echo "[i] $d"
-			elif [[ ! " ${pkg_array[*]} " =~ " ${d} " ]]; then
-				echo "[ ] $d"
-			fi
-		elif [ -z "$installed" ]; then
-			echo "[ ] $d"
-		fi
-	done
 }
 
 helper() {
