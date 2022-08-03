@@ -189,7 +189,7 @@ update_md5sum_source(){
 			MD5SUM_new=$(md5sum "$NAME_d" | awk '{print $1}' | sed 's:"::g')
 			if [ "$MD5SUM_new" = "${local_array_md5sum[$d]}" ]; then
 				echo "[m] $NAME_d"
-			elif [ "$MD5SUM_new" != "$MD5SUM_old" ]; then
+			elif [ "$MD5SUM_new" != "${local_array_md5sum[$d]}" ]; then
 				sed -i "s|${local_array_md5sum[$d]}|${MD5SUM_new}|" $PRGNAM.info
 				echo "[u] $NAME_d"
 			fi
