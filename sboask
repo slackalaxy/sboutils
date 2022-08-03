@@ -8,6 +8,7 @@ SBO_DEPENDENTS="no"
 SBO_FIND="no"
 SBO_KEY="no"
 SBO_ISINST="no"
+SBO_VERBOSE="no"
 
 is_input_empty(){
 	if [ -z "$1" ]; then
@@ -163,15 +164,17 @@ dependencies_title(){
 }
 
 helper() {
-	echo "Usage: `basename $0` [task] SlackBuild"
+	echo "Usage: `basename $0` [task] SlackBuild [ option ]"
 	echo "Tasks:"
 	echo "  info           display information about SlackBuild"
 	echo "  isinst         show if a package is installed"
-	echo "  dep            display dependencies chain for a SlackBuild"
-	echo "  dependent      display what depends on a SlackBuild"
+	echo "  dep            show dependencies chain for a SlackBuild"
+	echo "  dependent      show what depends on a SlackBuild"
 	echo "  find|search    search for a SlackBuild by name"
 	echo "  key            search by keyword"
 	echo "  help           display this help message"
+	echo "Options:"
+	echo "  -v, --verbose  display verbose outup"
 }
 
 options(){
@@ -204,10 +207,15 @@ options(){
 		;;
   	esac
 
+	case $3 in
+		-v|--verbose)
+			SBO_VERBOSE="yes"
+		;;
+	esac
 }
 
 main(){
-	options "$1" "$2"
+	options "$@"
 	is_input_empty "$2"
 	
 	if [ "$SBO_ISINST" = "yes" ] && [ ! -z "$2" ]; then
@@ -259,6 +267,6 @@ main(){
 	exit 0
 }
 
-main "$1" "$2"
+main "$@"
 
 # End of file
