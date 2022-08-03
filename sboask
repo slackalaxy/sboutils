@@ -17,9 +17,17 @@ is_input_empty(){
 	fi
 }
 
+find_category(){
+	CATEGORY=$(grep "/${1}$" $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | awk -F'[//]' '{print $2}')
+}
+
 check_location(){
-	LOCATION=$(cat $REPO/SLACKBUILDS.TXT | grep "/${1}$" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
-	SEARCHES=$(cat $REPO/SLACKBUILDS.TXT | grep -i "${1}" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
+	CATEGORY=$(grep "/${1}$" $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | awk -F'[//]' '{print $2}')
+	LOCATION=$CATEGORY/$1
+
+	#SEARCHES=$(cat $REPO/SLACKBUILDS.TXT | grep -i "${1}" | grep LOCATION | sed "s|SLACKBUILD LOCATION: ./||")
+	SEARCHES=$(basename `grep -i "${1}" $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | sed "s|SLACKBUILD LOCATION:||g"`)
+	
 	
 	LOCATION_array=( $LOCATION )
 	SEARCHES_array=( $SEARCHES )
@@ -34,8 +42,8 @@ search_not_found(){
 
 location_search(){
 	for i in ${SEARCHES_array[@]}; do
-		nam=$(basename $i)
-		SHORTDESC=$(cat $REPO/$i/slack-desc | grep "${nam}: ${nam}" | awk -F'[()]' '{print $2}' )
+		find_category $i
+		SHORTDESC=$(cat $REPO/$CATEGORY/$i/slack-desc | grep "${nam}: ${nam}" | awk -F'[()]' '{print $2}' )
 		echo -e "$i ($SHORTDESC)"
 	done
 }
@@ -60,7 +68,6 @@ keywords_search(){
 display_info(){
 	. $REPO/$LOCATION/$1.info
 	SHORTDESC=$(cat $REPO/$LOCATION/slack-desc | grep "${1}: ${1}" | sed "s|${1}: ||")
-	CATEGORY=$(echo "$LOCATION" | sed "s:/$PRGNAM::")
 	keywords=$(grep -i -w "${1}:" $REPO/TAGS.txt | sed "s|${1}: ||g" | sed "s|${1}:||g" | sed "s|,|, |g")
 	echo ""
 	echo "$SHORTDESC"
@@ -164,7 +171,7 @@ dependencies_title(){
 }
 
 helper() {
-	echo "Usage: `basename $0` [task] SlackBuild [ option ]"
+	echo "Usage: `basename $0` [task] SlackBuild [ -v ]"
 	echo "Tasks:"
 	echo "  info           display information about SlackBuild"
 	echo "  isinst         show if a package is installed"
@@ -202,7 +209,8 @@ options(){
 			exit 0
 		;;
 		*)
-			echo "No task or unknown task $1"
+			echo "No task or task unknown $1"
+			helper
 			exit 1
 		;;
   	esac
@@ -242,7 +250,7 @@ main(){
 	fi
 
 	if [ "$SBO_FIND" = "yes" ] && [ ! -z "$2" ]; then
-		search_not_found "$2"
+		#search_not_found "$2"
 		location_search
 		exit 0
 	fi
