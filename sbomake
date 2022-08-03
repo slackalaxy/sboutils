@@ -18,6 +18,9 @@ SBO_DOWNLOAD="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
 SBO_CLEAN="no"
 SBO_UPDATE_MD5SUM="no"
+x86="no"
+x86_64="no"
+
 
 is_imput_empty(){
 	if [ "$1" = "" ]; then
@@ -78,7 +81,7 @@ prepare_slackbuild_template(){
 }
 
 prepare_slackdesc_template(){
-	EMPTY="$(printf '%*s' ${#PRGNAM})"
+	EMPTY="$(printf '%*s' ${#DIRNAM})"
 	sed -i "s:appname:$DIRNAM:g" slack-desc
 	sed -i "s:       :$EMPTY:" slack-desc
 }
@@ -104,38 +107,54 @@ load_info(){
 		exit 1
 	fi
 	if [ "$DIRNAM" != "$PRGNAM" ]; then
-		echo "SlackBuild folder name is different than PRGNAM!"
+		echo "SlackBuild folder name is different than PRGNAM."
 		exit 1
 	fi
 }
 
-load_all_sources(){
-# Load sources and their md5sums as arrays
+what_sources(){
 	if [ "$DOWNLOAD" != "UNSUPPORTED" ]; then
-		read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
-		read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
 		x86="yes"
 	fi
 	if [ "$DOWNLOAD_x86_64" != "UNSUPPORTED" ] && [ "$DOWNLOAD_x86_64" != "UNTESTED" ] && [ ! -z $DOWNLOAD_x86_64 ]; then
-		read -r -d '' -a ARRAY_DOWNLOAD_x86_64 < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
-		read -r -d '' -a ARRAY_MD5SUM_x86_64 < <( echo "$MD5SUM_x86_64" && printf '\0' )
 		x86_64="yes"
+	fi
+	
+}
+
+load_sources(){
+	if [ "$x86" = "yes" ]; then
+		read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
+	fi
+	if [ "$x86_64" = "yes" ]; then
+		read -r -d '' -a ARRAY_DOWNLOAD_x86_64 < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
+	fi
+}
+
+load_md5sum(){
+	if [ "$x86" = "yes" ]; then
+		read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
+	fi
+	if [ "$x86_64" = "yes" ]; then
+		read -r -d '' -a ARRAY_MD5SUM_x86_64 < <( echo "$MD5SUM_x86_64" && printf '\0' )
 	fi
 }
 
 empty_sources(){
-	if [ -z "$DOWNLOAD" ] && [ -z "$DOWNLOAD_x86_64" ]; then
-		echo "$PRGNAM.info has empty sources fields!"
+	if [ "$x86" = "yes" ] && [ -z "$DOWNLOAD" ]; then
+		echo "$PRGNAM.info has empty sources fields."
 		exit 1
-	elif [ -z "$MD5SUM" ] && [ -z "$MD5SUM_x86_64" ]; then
-		echo "$PRGNAM.info has empty md5sum fields!"
+	fi
+}
+
+empty_md5sum(){
+	if [ "$x86" = "yes" ] && [ -z "$MD5SUM" ]; then
+		echo "$PRGNAM.info has empty md5sum fields."
 		exit 1
-	elif [ "$DOWNLOAD" = "UNSUPPORTED" ] && [ -z "$DOWNLOAD_x86_64" ]; then
-		echo "$PRGNAM.info has empty sources fields!"
-		exit 1
-	elif [ "$DOWNLOAD_x86_64" = "UNSUPPORTED" ] && [ -z "$DOWNLOAD" ]; then
-		echo "$PRGNAM.info has empty sources fields!"
-		exit 1
+	fi
+	if [ "$x86_64" = "yes" ] && [ -z "$MD5SUM_x86_64" ]; then
+		echo "$PRGNAM.info has empty md5sum fields."
+		exit
 	fi
 }
 
@@ -145,7 +164,6 @@ download_source(){
 		cert="--no-check-certificate"
 	fi
 	
-	# pass the array to the function later
 	local -n local_array_download=$1
 	for d in ${local_array_download[@]}; do
 		if [ -f `basename $d` ]; then
@@ -303,8 +321,9 @@ main(){
 	
 	if [ "$SBO_DOWNLOAD" = "yes" ]; then
 		load_info
+		what_sources
 		empty_sources
-		load_all_sources
+		load_sources
 		if [ "$x86" = "yes" ]; then
 			download_source ARRAY_DOWNLOAD
 		fi
@@ -315,8 +334,10 @@ main(){
 	
 	if [ $SBO_UPDATE_MD5SUM = "yes" ]; then
 		load_info
-		empty_sources
-		load_all_sources
+		what_sources
+		load_sources
+		empty_md5sum
+		load_md5sum
 		update_md5sum_source_title
 		if [ "$x86" = "yes" ]; then
 			update_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
@@ -328,7 +349,8 @@ main(){
 	
 	if [ $SBO_CLEAN = "yes" ]; then
 		load_info
-		load_all_sources
+		what_sources
+		load_sources
 		if [ "$x86" = "yes" ]; then
 			clean_source ARRAY_DOWNLOAD
 		fi
