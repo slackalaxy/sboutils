@@ -121,6 +121,12 @@ display_maintainer(){
 	echo -e "Maintainer: $MAINTAINER ($EMAIL)\n"
 }
 
+# display_info(){
+# 	check_location $1
+# 	if [ "$SBO_VERBOSE" = "yes" ]; then
+# 		slackdesc_print $LOCATION/$1
+# }
+
 display_searched(){
 	local p=${1} # searched entry
 	# check if dependency ($1) is among installed pkgs
@@ -134,12 +140,30 @@ display_searched(){
 
 		pkg_array=( $pkg )
 		if [[ " ${pkg_array[*]} " =~ " ${p} " ]]; then
-			echo "[i] $p"
+			if [ "$SBO_VERBOSE" = "yes" ]; then
+				check_location $p
+				slackdesc_print $REPO/$LOCATION/slack-desc
+				echo "[i] $p ... ($slackdesc)"
+			else
+				echo "[i] $p"
+			fi
 		elif [[ ! " ${pkg_array[*]} " =~ " ${p} " ]]; then
-			echo "[ ] $p"
+			if [ "$SBO_VERBOSE" = "yes" ]; then
+				check_location $p
+				slackdesc_print $REPO/$LOCATION/slack-desc
+				echo "[ ] $p ... ($slackdesc)"
+			else
+				echo "[ ] $p"
+			fi
 		fi
 	elif [ -z "$installed" ]; then
-		echo "[ ] $p"
+		if [ "$SBO_VERBOSE" = "yes" ]; then
+			check_location $p
+			slackdesc_print $REPO/$LOCATION/slack-desc
+			echo "[ ] $p ... ($slackdesc)"
+		else
+			echo "[ ] $p"
+		fi
 	fi
 }
 
