@@ -1,6 +1,6 @@
 # sboutils
 
-Tools to manage SlackBuilds: `sboask` (shows information from [SlackBuilds.org](https://slackbuilds.org/)), `sborun` (runs a SlackBuild automatically) and `sbomake` (helps with SlackBuild templates). They are written in BASH and are heavily inspired by the pkgutils and prt-get outstanding package management tools for CRUX. 
+Tools to manage SlackBuilds: `sboask` (shows information from [SlackBuilds.org](https://slackbuilds.org/)), `sborun` (runs a SlackBuild automatically) and `sboset` (helps with SlackBuild templates). They are written in BASH and are heavily inspired by the pkgutils and prt-get outstanding package management tools for CRUX. 
 
 **I am testing sboutils at the moment, by using them to update my Slackbuilds. So, this is still very much work in progress! When I think I am done, I'll make an announcement at LQ.** I will appreaciate any feedback: slackalaxy ат gmail.com
 
@@ -12,7 +12,7 @@ Tools to manage SlackBuilds: `sboask` (shows information from [SlackBuilds.org](
 ## Configuration
 You should adjust `/etc/sbotools.conf` accordingly. Below is my configuration:
 ```
-# The three lines below are needed if you create new SlackBuilds by <sbomake>
+# The three lines below are needed if you create new SlackBuilds by <sboset>
 MAINTAINER="Petar Petrov"
 EMAIL="slackalaxy at gmail dot com"
 ADDRESS="$EMAIL"
@@ -182,12 +182,12 @@ Options:
   -h,   --help              print this help
 ```
 
-## sbomake
-This makes a new SlackBuild, or rather it helps create it, by fetching the appropriate template (autotools, cmake, meson,...) and naming files accordingly. It also cleans up a bit, filling the program's name automatically where needed, as well as the author's credentials. It can download sources and update their md5sum, for example between version updates. It should be run from within the folder where you plan your SlackBuild to be.
+## sboset
+This helps set up a new SlackBuild, by fetching the appropriate template (autotools, cmake, meson,...) and naming files accordingly. It also cleans up a bit, filling the program's name automatically where needed, as well as the author's credentials. It can download sources and update their md5sum, for example between version updates. It should be run from within the folder where you plan your SlackBuild to be.
 ```
-bash-5.1$ sbomake -h
-Run sbomake from within the SlackBuild folder.
-Usage: sbomake [template] [option]
+bash-5.1$ sboset -h
+Run sboset from within the SlackBuild folder.
+Usage: sboset [template] [option]
 Templates: auto (autotools), cmake, haskell, meson,
            perl, python, ruby (rubygem)
 Options:
