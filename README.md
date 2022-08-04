@@ -27,7 +27,7 @@ ARCH="x86_64"
 ```
 
 ## sboask
-This asks SlackBuilds.org about stuff. It displays information about a SlackBuild (including immediate list of dependencies and whether they are already installed), uses [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/) to generate a full list of dependencies, or reverse-dependencies (dependents) -- SlackBuilds that depend on the searched entry. It can also search by name or a keyword.
+This asks SlackBuilds.org about stuff. It displays information about a SlackBuild (including immediate list of dependencies and whether they are already installed), uses [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/) to generate a full list of dependencies, or reverse-dependencies (dependents) -- SlackBuilds that depend on the searched entry. It can also search by name or a keyword. What it **cannot** do is build and install from SBo.
 ```
 bash-5.1$ sboask help
 Usage: sboask [task] SlackBuild [-v]
