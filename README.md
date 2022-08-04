@@ -15,15 +15,17 @@ I will appreaciate any feedback: slackalaxy ат gmail.com
 This asks SlackBuilds.org about stuff. It displays info about a SlackBuild (including immediate list of dependencies and whether they are already installed), uses [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/) to generate a full list of dependencies, or reverse-dependencies (dependents) -- SlackBuilds that depend on the searched entry, as well as, does some basic searching.
 ```
 bash-5.1$ sboask help
-Usage: sboask [task] SlackBuild
+Usage: sboask [task] SlackBuild [ -v ]
 Tasks:
   info           display information about SlackBuild
   isinst         show if a package is installed
-  dep            display dependencies chain for a SlackBuild
-  dependent      display what depends on a SlackBuild
+  dep            show dependencies chain for a SlackBuild
+  dependent      show what depends on a SlackBuild
   find|search    search for a SlackBuild by name
   key            search by keyword
-  help           display this help message
+  help           print this help
+Options:
+  -v, --verbose  display a more verbose output
 ```
 As an example, let's consider **inkscape** and display information about it, by `sboask info inkscape`. This outputs the following, where dependencies *lxml*, *numpy* and *potrace* I already have installed:
 ```

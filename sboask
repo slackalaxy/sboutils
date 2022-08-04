@@ -19,7 +19,12 @@ is_input_empty(){
 
 check_location(){
 	CATEGORY=$(grep "/${1}$" $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | awk -F'[//]' '{print $2}')
-	LOCATION=$CATEGORY/$1
+	#if [ -z $CATEGORY ]; then
+	#	echo "$1 not found on SlackBuilds.org"
+	#	exit 0
+	#else
+		LOCATION=$CATEGORY/$1
+	#fi
 }
 
 search_not_found(){
@@ -124,8 +129,12 @@ display_maintainer(){
 searched_status(){
 	if [ "$SBO_VERBOSE" = "yes" ]; then
 		check_location $1
-		slackdesc_print $REPO/$LOCATION/slack-desc
-		echo "$2 $1 :: ($slackdesc)"
+		if [ -f $REPO/$LOCATION/slack-desc ]; then
+			slackdesc_print $REPO/$LOCATION/slack-desc
+			echo "$2 $1 :: ($slackdesc)"
+		else
+			echo "$2 $1"
+		fi
 	else
 		echo "$2 $1"
 	fi
@@ -239,18 +248,27 @@ main(){
 	options "$@"
 	is_input_empty "$2"
 	
+	if [ "$SBO_FIND" = "yes" ] && [ ! -z "$2" ]; then
+		name_search "$2"
+		exit 0
+	fi
+	if [ "$SBO_KEY" = "yes" ] && [ ! -z "$2" ]; then
+		keywords_search "$2"
+		exit 0
+	fi
+		
 	if [ "$SBO_ISINST" = "yes" ] && [ ! -z "$2" ]; then
 		display_searched "$2"
 		exit 0
 	fi
 	
 	check_location "$2"
-		
+	search_not_found "$2"
+			
 	# $2 refers to position, e.g.: sboask info $2 (aka slackbuild),
 	# but comes first after the function, so it is referred as $1
 	# inside the corresponding functions! A note to my stupid self.
 	if [ "$SBO_INFO" = "yes" ] && [ ! -z "$2" ]; then
-		search_not_found "$2"
 		display_info "$2"
 		if [ "$SBO_VERBOSE" = "yes" ]; then
 			display_sources
@@ -262,23 +280,13 @@ main(){
 		exit 0
 	fi
 
-	if [ "$SBO_FIND" = "yes" ] && [ ! -z "$2" ]; then
-		name_search "$2"
-		exit 0
-	fi
-	if [ "$SBO_KEY" = "yes" ] && [ ! -z "$2" ]; then
-		keywords_search "$2"
-		exit 0
-	fi
 	if [ "$SBO_DEPS" = "yes" ] && [ ! -z "$2" ]; then
-		search_not_found "$2"
 		hoorex_array "$2" DEPS
 		dependencies_title
 		hoorex_output
 		exit 0
 	fi
 	if [ "$SBO_DEPENDENTS" = "yes" ] && [ ! -z "$2" ]; then
-		search_not_found "$2"
 		hoorex_array "$2" DEPENDENTS
 		dependencies_title
 		hoorex_output
