@@ -30,6 +30,12 @@ search_not_found(){
 	fi
 }
 
+slackdesc_print(){
+	handy_ruler="|-----handy-ruler------------------------------------------------------|"
+	slackdesc=$(sed -n "/$handy_ruler/{n;p;}" $1 | awk -F'[()]' '{print $2}' )
+}
+
+
 search_entry(){
 	
 	local -n SEARCH_ARRAY=$1
@@ -46,9 +52,8 @@ search_entry(){
 	
 	for a in ${search_array_sorted[@]}; do
 		if [ "$SBO_VERBOSE" = "yes" ]; then
-			n=$(basename $a)
-			SHORTDESC=$(grep "${n}: ${n} (" $REPO/$a/slack-desc | awk -F'[()]' '{print $2}')
-			echo "$a ... ($SHORTDESC)"
+			slackdesc_print $REPO/$a/slack-desc
+			echo "$a ... ($slackdesc)"
 		else
 			echo "$a"
 		fi	
@@ -67,10 +72,9 @@ keywords_search(){
 
 display_info(){
 	. $REPO/$LOCATION/$1.info
-	SHORTDESC=$(cat $REPO/$CATEGORY/$PRGNAM/slack-desc | grep "${1}: ${1}" | sed "s|${1}: ||")
 	keywords=$(grep -i -w "${1}:" $REPO/TAGS.txt | sed "s|${1}: ||g" | sed "s|${1}:||g" | sed "s|,|, |g")
 	echo ""
-	echo "$SHORTDESC"
+	echo "Name:     $PRGNAM"
 	echo "Version:  $VERSION"
 	echo "Category: $CATEGORY"
 	echo "Homepage: $HOMEPAGE"
