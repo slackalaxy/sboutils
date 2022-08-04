@@ -8,6 +8,7 @@ SBO_INSTALL="no"
 SBO_UPGRADE="no"
 SBO_REINSTALL="no"
 SBO_DOWNLOAD="no"
+SBO_DOWNLOAD_ONLY="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
 SBO_FORCE="no"
 
@@ -193,7 +194,8 @@ helper() {
 	echo "Options:"
 	echo "  -i,   --install           build and install package"
 	echo "  -u,   --upgrade           build and upgrade package"
-	echo "  -d,   --download          download, check sources and exit"
+	echo "  -d,   --download          download, check sources and build"
+	echo "  -do,  --download-only     download, check sources and exit"
 	echo "  -f,   --force             force operation"
 	echo "  -nc,  --no-certificate    do not check download certificate"
 	echo "  -h,   --help              print this help"
@@ -210,6 +212,9 @@ options(){
 			;;
 			-d|--download)
 				SBO_DOWNLOAD="yes"
+			;;
+			-do|--download-only)
+				SBO_DOWNLOAD_ONLY="yes"
 			;;
 			-nc|--no-certificate)
 				SBO_DOWNLOAD_NO_CERTIFICATE="yes"
@@ -244,7 +249,7 @@ main(){
 	load_sources
 
 	# functions to execute pre-build
-	if [ $SBO_DOWNLOAD = "yes" ]; then
+	if [ $SBO_DOWNLOAD_ONLY = "yes" ]; then
 		download_source_title
 		download_source ARRAY_DOWNLOAD
 		check_md5sum_source_title
@@ -291,8 +296,10 @@ main(){
 		exit 0
 	# hope that covers it... then, proceed
 	else
-		download_source_title
-		download_source ARRAY_DOWNLOAD
+		if [ $SBO_DOWNLOAD = "yes" ]; then
+			download_source_title
+			download_source ARRAY_DOWNLOAD
+		fi
 		check_md5sum_source_title
 		check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
 		report_md5sum_source
