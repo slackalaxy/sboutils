@@ -12,6 +12,19 @@ SBO_DOWNLOAD_ONLY="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
 SBO_FORCE="no"
 
+check_settings() {
+	if [ ! "$BUILD" ]; then
+		echo "'BUILD' not specified in /etc/sboutils.conf."
+		exit 1
+	elif [ ! "$PKGS" ]; then
+		echo "'PKGS' not specified in /etc/sboutils.conf."
+		exit 1
+	elif [ ! "$ARCH" ]; then
+		echo "'ARCH' not specified in /etc/sboutils.conf."
+		exit 1
+	fi
+}
+
 check_folder() {
 	if [ ! -d $1 ]; then
 		echo "Folder '$1' does not exist."
@@ -320,6 +333,7 @@ main(){
 	exit 0
 }
 
+check_settings
 main "$@"
 
 # End of file

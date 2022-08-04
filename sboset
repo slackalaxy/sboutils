@@ -21,6 +21,18 @@ SBO_UPDATE_MD5SUM="no"
 x86="no"
 x86_64="no"
 
+check_settings() {
+	if [ ! "$MAINTAINER" ]; then
+		echo "'MAINTAINER' not specified in /etc/sboutils.conf."
+		exit 1
+	elif [ ! "$EMAIL" ]; then
+		echo "'EMAIL' not specified in /etc/sboutils.conf."
+		exit 1
+	elif [ ! "$ADDRESS" ]; then
+		echo "'ADDRESS' not specified in /etc/sboutils.conf."
+		exit 1
+	fi
+}
 
 is_imput_empty(){
 	if [ "$1" = "" ]; then
@@ -362,6 +374,7 @@ main(){
 	exit 0
 }
 
+check_settings
 is_imput_empty "$@"
 main "$@"
 
