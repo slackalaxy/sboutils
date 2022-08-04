@@ -60,11 +60,17 @@ search_entry(){
 name_search(){
 	FIND_array=( "$( cat $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | sed "s|SLACKBUILD LOCATION:||g" | awk -F  "/" '{print $3}' | grep -i "${1}")" )
 	search_entry FIND_array
+	if [ -z $FIND_array ]; then
+		echo "No matches found."
+	fi
 }
 
 keywords_search(){
 	read -r -d '' -a KEYWORDS_ARRAY < <(grep "${1}" $REPO/TAGS.txt | awk '{print $1}' | sed "s|:||g")
 	search_entry KEYWORDS_ARRAY
+	if [ -z $KEYWORDS_ARRAY ]; then
+		echo "No matches found."
+	fi
 }
 
 display_info(){
