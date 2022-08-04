@@ -92,7 +92,7 @@ bash-5.1$ sboask dependent libgnome
 [i] libbonoboui
 [i] libgnomemm
 ```
-Searching can be done either by name or keywords. Let's find stuff that sounds like **clamav**, by `sboask find clamav`. This returns a list, showing the category:
+Searching can be done either by name or keywords. Searching for stuff with "clamav" in the name, by `sboask find clamav`, will output a list, showing the category:
 ```
 bash-5.1$ sboask find clamav
 network/clamav-unofficial-sigs
@@ -109,7 +109,47 @@ system/clamsmtp
 system/clamtk
 system/squidclamav
 ```
+To quickly check if something is installed, do `sboask isinst libgnome`, which will return:
+```
+[i] libgnome
+```
+The --verbose (-v) option can be used with each `task` and will tell `sboask` to output some more information, such as the short description from the slack-desc files:
+```
+bash-5.1$ sboask dependent libgnome -v
+--- status and dependencies: ([i] installed, [ ] not installed)
+[i] libgnome (Libraries needed for GNOME)
+[i] libbonoboui (Independant CORBA interface support library)
+[i] libgnomemm (C++ wrappers for libgnome)
+[ ] gnome-python (Python bindings for GNOME)
+```
+When used with the `info` task, the sources name, md5sum and maintainer information will also be displayed, for example for **ghemical**:
+```
+bash-5.1$ sboask info ghemical -v
 
+Name:     ghemical
+Version:  3.0.0
+Category: academic
+Homepage: http://www.bioinformatics.org/ghemical/
+
+Ghemical is an easy-to-use molecular editor with OpenGL visualisation
+features and modeling package with all-atoms molecular mechanics,
+reduced protein models and links to many common quantum chemistry
+codes.
+
+Keywords: ghemical, MM, QM, computational chemistry
+
+--- sources (md5sum | filename):
+becf98626f0eba73f7f042bc92aa60ac | ghemical-3.0.0.tar.gz
+
+Maintainer: Daniil Bratashov (dn2010@gmail.com)
+
+[ ] ghemical (Computational chemistry package)
+--- status and dependencies: ([i] installed, [ ] not installed)
+[i] gtkglext (an OpenGL extension to GTK)
+[ ] libghemical (computational chemistry library from ghemical)
+[ ] liboglappth (OpenGL extension library for GTK)
+[i] openbabel (Open Babel 3D Library)
+```
 ## sborun
 This runs a SlackBuild. It should be run from within the folder containing the SlackBuild and its associated files (*.info, slack-desc,...). It can download sources, check md5sum, as well as build and install the ready package. If you just run it without any additional options it will only build the package.
 ```
