@@ -153,6 +153,7 @@ check_md5sum_source_title(){
 }
 
 build(){
+	set -e
 	bash ./$PRGNAM.SlackBuild
 }
 
