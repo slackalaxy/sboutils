@@ -160,7 +160,7 @@ Options:
   -i,   --install           build and install package
   -u,   --upgrade           build and upgrade package
   -d,   --download          download, check sources and exit
-  -f    --force             force operation
+  -f,   --force             force operation
   -nc,  --no-certificate    do not check download certificate
   -h,   --help              print this help
 ```
