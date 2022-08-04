@@ -194,7 +194,7 @@ dependencies_title(){
 }
 
 helper() {
-	echo "Usage: `basename $0` [task] SlackBuild [ -v ]"
+	echo "Usage: `basename $0` [task] SlackBuild [-v]"
 	echo "Tasks:"
 	echo "  info           display information about SlackBuild"
 	echo "  isinst         show if a package is installed"

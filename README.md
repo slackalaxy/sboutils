@@ -1,21 +1,36 @@
 # sboutils
 
-Tools written in bash to manage SlackBuilds: `sboask` (shows information from SlackBuilds.org), `sborun` (runs a SlackBuild automatically) and `sbomake` (helps with SlackBuild templates). They are heavily inspired by the pkgutils and prt-get outstanding package management tools for CRUX. 
+Tools to manage SlackBuilds: `sboask` (shows information from [SlackBuilds.org](https://slackbuilds.org/)), `sborun` (runs a SlackBuild automatically) and `sbomake` (helps with SlackBuild templates). They are written in BASH and are heavily inspired by the pkgutils and prt-get outstanding package management tools for CRUX. 
 
-**I am testing sboutils at the moment, by using them to update my Slackbuilds. So, this is still very much work in progress! When I think I am done, I'll make an announcement at LQ.**
-
-I will appreaciate any feedback: slackalaxy ат gmail.com
+**I am testing sboutils at the moment, by using them to update my Slackbuilds. So, this is still very much work in progress! When I think I am done, I'll make an announcement at LQ.** I will appreaciate any feedback: slackalaxy ат gmail.com
 
 ## Requirements
-* [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/)
+* [hoorex ](https://slackbuilds.org/repository/15.0/misc/hoorex/)  (Dependency Calculator)
 * configuration file should go here: `/etc/sboutils.conf`
 * [template](./templates/) files should be in: `/usr/share/sboutils/templates`. These are the ones at [SBo](https://slackbuilds.org/templates/), I only added a `template.desktop` file.
 
+## Configuration
+You should adjust `/etc/sbotools.conf` accordingly. Below is my configuration:
+```
+# The three lines below are needed if you create new SlackBuilds by <sbomake>
+MAINTAINER="Petar Petrov"
+EMAIL="slackalaxy at gmail dot com"
+ADDRESS="$EMAIL"
+
+# Where the SBo repo is downloaded, where to build and where to output packages
+REPO="/var/lib/sbopkg/SBo/15.0"
+BUILD="/tmp/SBo"
+PKGS="/tmp"
+
+# Specify your architecture: "x86_64" or "x86"
+ARCH="x86_64"
+```
+
 ## sboask
-This asks SlackBuilds.org about stuff. It displays info about a SlackBuild (including immediate list of dependencies and whether they are already installed), uses [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/) to generate a full list of dependencies, or reverse-dependencies (dependents) -- SlackBuilds that depend on the searched entry, as well as, does some basic searching.
+This asks SlackBuilds.org about stuff. It displays information about a SlackBuild (including immediate list of dependencies and whether they are already installed), uses [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/) to generate a full list of dependencies, or reverse-dependencies (dependents) -- SlackBuilds that depend on the searched entry. It can also search by name or a keyword.
 ```
 bash-5.1$ sboask help
-Usage: sboask [task] SlackBuild [ -v ]
+Usage: sboask [task] SlackBuild [-v]
 Tasks:
   info           display information about SlackBuild
   isinst         show if a package is installed
@@ -27,7 +42,7 @@ Tasks:
 Options:
   -v, --verbose  display a more verbose output
 ```
-As an example, let's consider **inkscape** and display information about it, by `sboask info inkscape`. This outputs the following, where dependencies *lxml*, *numpy* and *potrace* I already have installed:
+As an example, let's consider **inkscape** and display information about it, using the `info` task. This outputs the following, where dependencies *lxml*, *numpy* and *potrace* I already have installed:
 ```
 bash-5.1$ sboask info inkscape
 
@@ -59,7 +74,7 @@ others and exports PNG as well as multiple vector-based formats.
 [ ] pstoedit
 [ ] scour
 ```
-Let's display the full list of **inkscape** dependencies by `sboask dep inkscape`, which outputs a simple list, recursively:
+Let's display the full list of **inkscape** dependencies by `dep`, which outputs a simple list, recursively:
 ```
 bash-5.1$ sboask dep inkscape
 --- dependencies: ([i] installed, [ ] not installed)
@@ -83,7 +98,7 @@ bash-5.1$ sboask dep inkscape
 [i] lxml
 [ ] inkscape
 ```
-Let's see what depends on **libgnome**, by `sboask dependent libgnome`. I have it installed, as well as most of it dependent SlackBuilds:
+Let's see what depends on **libgnome**, by `dependent`. I have it installed, as well as most of the SlackBuilds dependent on it:
 ```
 bash-5.1$ sboask dependent libgnome
 --- dependencies: ([i] installed, [ ] not installed)
@@ -92,14 +107,14 @@ bash-5.1$ sboask dependent libgnome
 [i] libbonoboui
 [i] libgnomemm
 ```
-Searching can be done either by name or keywords. Searching for stuff with "clamav" in the name, by `sboask find clamav`, will output a list, showing the category:
+Searching can be done either by name or a keyword. Searching for stuff with "clamav" in the name, by either `find` or `search`, will output a list, showing the category:
 ```
 bash-5.1$ sboask find clamav
 network/clamav-unofficial-sigs
 system/clamav
 system/squidclamav
 ```
-As a comparison, searching by keywords with `sboask key clamav`, will output:
+As a comparison, searching by keywords with `key`, will output:
 ```
 bash-5.1$ sboask key clamav
 desktop/thunar-sendto-clamtk
@@ -109,11 +124,12 @@ system/clamsmtp
 system/clamtk
 system/squidclamav
 ```
-To quickly check if something is installed, do `sboask isinst libgnome`, which will return:
+To quickly check if something is installed, pass `isinst`, which will return:
 ```
+bash-5.1$ sboask isinst libgnome
 [i] libgnome
 ```
-The --verbose (-v) option can be used with each `task` and will tell `sboask` to output some more information, such as the short description from the slack-desc files:
+The `--verbose` (`-v`) option can be used with each task and will tell `sboask` to output some more information, such as the short description from the slack-desc files:
 ```
 bash-5.1$ sboask dependent libgnome -v
 --- status and dependencies: ([i] installed, [ ] not installed)
@@ -122,7 +138,7 @@ bash-5.1$ sboask dependent libgnome -v
 [i] libgnomemm (C++ wrappers for libgnome)
 [ ] gnome-python (Python bindings for GNOME)
 ```
-When used with the `info` task, the sources name, md5sum and maintainer information will also be displayed, for example for **ghemical**:
+When used with `info`, the sources name, md5sum and maintainer information will also be displayed, for example for **ghemical**:
 ```
 bash-5.1$ sboask info ghemical -v
 
@@ -151,7 +167,7 @@ Maintainer: Daniil Bratashov (dn2010@gmail.com)
 [i] openbabel (Open Babel 3D Library)
 ```
 ## sborun
-This runs a SlackBuild. It should be run from within the folder containing the SlackBuild and its associated files (*.info, slack-desc,...). It can download sources, check md5sum, as well as build and install the ready package. If you just run it without any additional options it will only build the package.
+This runs a SlackBuild. It should be run from within the folder containing the SlackBuild and its associated files (*.info, slack-desc,...). It can download sources, check md5sum, as well as build and install the ready package. If you just run it without any additional options it will only build the package. Of course, you should have the right permissions for this.
 ```
 bash-5.1$ sborun -h
 Run sborun from within the SlackBuild containing folder.

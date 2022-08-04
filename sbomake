@@ -76,7 +76,7 @@ prepare_slackbuild_template(){
 	sed -i "s:appname:$DIRNAM:g" $DIRNAM.SlackBuild
 	sed -i "s:<year>:$YEAR:" $DIRNAM.SlackBuild
 	sed -i "s:<you>:$MAINTAINER:" $DIRNAM.SlackBuild
-	sed -i "s:<where you live>:$LOCATION:" $DIRNAM.SlackBuild
+	sed -i "s:<where you live>:$ADDRESS:" $DIRNAM.SlackBuild
 	sed -i '/# |--/,/# |--/d' $DIRNAM.SlackBuild
 }
 
