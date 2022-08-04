@@ -50,7 +50,7 @@ search_entry(){
 	for a in ${search_array_sorted[@]}; do
 		if [ "$SBO_VERBOSE" = "yes" ]; then
 			slackdesc_print $REPO/$a/slack-desc
-			echo "$a :: ($slackdesc)"
+			echo "$a ($slackdesc)"
 		else
 			echo "$a"
 		fi	
@@ -123,7 +123,7 @@ searched_status(){
 		check_location $1
 		if [ -f $REPO/$LOCATION/slack-desc ]; then
 			slackdesc_print $REPO/$LOCATION/slack-desc
-			echo "$2 $1 :: ($slackdesc)"
+			echo "$2 $1 ($slackdesc)"
 		else
 			echo "$2 $1"
 		fi
