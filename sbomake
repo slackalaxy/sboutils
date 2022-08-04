@@ -275,7 +275,7 @@ options(){
 				exit 0
 			;;
 			*)
-				echo "Unknown option $1. Use <`basename $0` -h> for options."
+				echo "Unknown template/option $1. Use <`basename $0` -h> for options."
 				exit 1
 			;;
   		esac
