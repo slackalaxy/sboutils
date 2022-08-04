@@ -193,7 +193,7 @@ helper() {
 	echo "  -i,   --install           build and install package"
 	echo "  -u,   --upgrade           build and upgrade package"
 	echo "  -d,   --download          download, check sources and exit"
-	echo "  -f    --force             force operation"
+	echo "  -f.   --force             force operation"
 	echo "  -nc,  --no-certificate    do not check download certificate"
 	echo "  -h,   --help              print this help"
 }
