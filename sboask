@@ -19,20 +19,11 @@ is_input_empty(){
 
 check_location(){
 	CATEGORY=$(grep "/${1}$" $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | awk -F'[//]' '{print $2}')
-	#if [ -z $CATEGORY ]; then
-	#	echo "$1 not found on SlackBuilds.org"
-	#	exit 0
-	#else
-		LOCATION=$CATEGORY/$1
-	#fi
-}
-
-search_not_found(){
-	LOCATION_array=( $LOCATION )
-	if [ "${#LOCATION_array[@]}" = "0" ] ; then
+	if [ -z "$CATEGORY" ] ; then
 		echo "$1 not found on SlackBuilds.org."
 		exit 1
 	fi
+	LOCATION=$CATEGORY/$1
 }
 
 slackdesc_print(){
@@ -55,6 +46,7 @@ search_entry(){
 	IFS=$'\n' search_array_sorted=($(sort <<<"${search_array[*]}"))
 	unset IFS
 	
+	# TODO: make this into a searched_status function
 	for a in ${search_array_sorted[@]}; do
 		if [ "$SBO_VERBOSE" = "yes" ]; then
 			slackdesc_print $REPO/$a/slack-desc
@@ -263,7 +255,6 @@ main(){
 	fi
 	
 	check_location "$2"
-	search_not_found "$2"
 			
 	# $2 refers to position, e.g.: sboask info $2 (aka slackbuild),
 	# but comes first after the function, so it is referred as $1
