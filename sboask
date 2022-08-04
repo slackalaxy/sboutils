@@ -10,6 +10,19 @@ SBO_KEY="no"
 SBO_ISINST="no"
 SBO_VERBOSE="no"
 
+check_settings() {
+	if [ ! "$REPO" ]; then
+		echo "'REPO' not specified in /etc/sboutils.conf."
+		exit 1
+	elif [ ! "$BUILD" ]; then
+		echo "'BUILD' not specified in /etc/sboutils.conf."
+		exit 1
+	elif [ ! "$PKGS" ]; then
+		echo "'PKGS' not specified in /etc/sboutils.conf."
+		exit 1
+	fi
+}
+
 is_input_empty(){
 	if [ -z "$1" ]; then
 		echo "Input is empty. Use <`basename $0` help> for options."
@@ -293,7 +306,7 @@ main(){
 	fi
 	exit 0
 }
-
+check_settings
 main "$@"
 
 # End of file
