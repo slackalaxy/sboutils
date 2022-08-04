@@ -14,6 +14,12 @@ check_settings() {
 	if [ ! "$REPO" ]; then
 		echo "'REPO' not specified in /etc/sboutils.conf."
 		exit 1
+	elif [ -z "$REPO/SLACKBUILDS.TXT" ]; then
+		echo "'$REPO/SLACKBUILDS.TXT' is empty."
+		exit 1
+	elif [ -z "$REPO/TAGS.txt" ]; then
+		echo "'$REPO/TAGS.txt' is empty."
+		exit 1
 	fi
 }
 
