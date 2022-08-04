@@ -270,12 +270,12 @@ options(){
 			-um|--update-md5)
 				SBO_UPDATE_MD5SUM="yes"
 			;;
-			-h|--help)
+			-h|--help|help)
 				helper
 				exit 0
 			;;
 			*)
-				echo "Unknown option $1"
+				echo "Unknown option $1. Use <`basename $0` -h> for options."
 				exit 1
 			;;
   		esac

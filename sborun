@@ -216,12 +216,12 @@ options(){
 			-f|--force)
 				SBO_FORCE="yes"
 			;;
-			-h|--help)
+			-h|--help|help)
 				helper
 				exit 0
 			;;
 			*)
-				echo "Unknown option $1"
+				echo "Unknown option $1. Use <`basename $0` -h> for options."
 				exit 1
 			;;
   		esac

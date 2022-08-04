@@ -53,7 +53,7 @@ search_entry(){
 	for a in ${search_array_sorted[@]}; do
 		if [ "$SBO_VERBOSE" = "yes" ]; then
 			slackdesc_print $REPO/$a/slack-desc
-			echo "$a ... ($slackdesc)"
+			echo "$a :: ($slackdesc)"
 		else
 			echo "$a"
 		fi	
@@ -121,11 +121,15 @@ display_maintainer(){
 	echo -e "Maintainer: $MAINTAINER ($EMAIL)\n"
 }
 
-# display_info(){
-# 	check_location $1
-# 	if [ "$SBO_VERBOSE" = "yes" ]; then
-# 		slackdesc_print $LOCATION/$1
-# }
+searched_status(){
+	if [ "$SBO_VERBOSE" = "yes" ]; then
+		check_location $1
+		slackdesc_print $REPO/$LOCATION/slack-desc
+		echo "$2 $1 :: ($slackdesc)"
+	else
+		echo "$2 $1"
+	fi
+}
 
 display_searched(){
 	local p=${1} # searched entry
@@ -140,30 +144,12 @@ display_searched(){
 
 		pkg_array=( $pkg )
 		if [[ " ${pkg_array[*]} " =~ " ${p} " ]]; then
-			if [ "$SBO_VERBOSE" = "yes" ]; then
-				check_location $p
-				slackdesc_print $REPO/$LOCATION/slack-desc
-				echo "[i] $p ... ($slackdesc)"
-			else
-				echo "[i] $p"
-			fi
+			searched_status "$p" "[i]"
 		elif [[ ! " ${pkg_array[*]} " =~ " ${p} " ]]; then
-			if [ "$SBO_VERBOSE" = "yes" ]; then
-				check_location $p
-				slackdesc_print $REPO/$LOCATION/slack-desc
-				echo "[ ] $p ... ($slackdesc)"
-			else
-				echo "[ ] $p"
-			fi
+			searched_status "$p" "[ ]"
 		fi
 	elif [ -z "$installed" ]; then
-		if [ "$SBO_VERBOSE" = "yes" ]; then
-			check_location $p
-			slackdesc_print $REPO/$LOCATION/slack-desc
-			echo "[ ] $p ... ($slackdesc)"
-		else
-			echo "[ ] $p"
-		fi
+		searched_status "$p" "[ ]"
 	fi
 }
 
@@ -207,9 +193,9 @@ helper() {
 	echo "  dependent      show what depends on a SlackBuild"
 	echo "  find|search    search for a SlackBuild by name"
 	echo "  key            search by keyword"
-	echo "  help           display this help message"
+	echo "  help           print this help"
 	echo "Options:"
-	echo "  -v, --verbose  display verbose outup"
+	echo "  -v, --verbose  display a more verbose output"
 }
 
 options(){
@@ -232,13 +218,12 @@ options(){
 		key)
 			SBO_KEY="yes"
 		;;
-		help)
+		help|-h|--help)
 			helper
 			exit 0
 		;;
 		*)
-			echo "No task or task unknown $1"
-			helper
+			echo "No task or task unknown. Use <`basename $0` help> for options."
 			exit 1
 		;;
   	esac
