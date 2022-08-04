@@ -12,7 +12,7 @@ SBO_VERBOSE="no"
 
 is_input_empty(){
 	if [ -z "$1" ]; then
-		echo "Input is empty. For help, use `basename $0` help."
+		echo "Input is empty. Use <`basename $0` help> for options."
 		exit 1
 	fi
 }
