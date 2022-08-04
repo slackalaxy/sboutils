@@ -194,9 +194,9 @@ Options:
   -di,  --doinst            copy doinst.sh file
   -du,  --douninst          copy douninst.sh file
   -de,  --desktop           copy template.desktop file
-  -d,   --download          download all sources and exit
-  -c,   --clean             clean any sources and exit
+  -d,   --download          download all sources
+  -c,   --clean             clean any sources
   -nc,  --no-certificate    do not check download certificate
-  -um,  --update-md5        update sources md5sum and exit
+  -um,  --update-md5        update sources md5sum
   -h,   --help              print this help
 ```

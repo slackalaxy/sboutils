@@ -218,10 +218,10 @@ helper() {
 	echo "  -di,  --doinst            also copy doinst.sh file"
 	echo "  -du,  --douninst          also copy douninst.sh file"
 	echo "  -de,  --desktop           also copy template.desktop file"
-	echo "  -d,   --download          download all sources and exit"
-	echo "  -c,   --clean             clean (delete) any sources and exit"
+	echo "  -d,   --download          download all sources"
+	echo "  -c,   --clean             clean (delete) any sources"
 	echo "  -nc,  --no-certificate    do not check download certificate"
-	echo "  -um,  --update-md5        update sources md5sum and exit"
+	echo "  -um,  --update-md5        update sources md5sum"
 	echo "  -h,   --help              print this help"
 }
 
