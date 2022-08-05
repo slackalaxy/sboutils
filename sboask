@@ -220,7 +220,7 @@ dependencies_title(){
 }
 
 sync_with_repo(){
-	rsync -av $URL $REPO 
+	rsync -av $URL $SYNC 
 	
 	if [ -z "$REPO/SLACKBUILDS.TXT" ]; then
 		echo "'$REPO/SLACKBUILDS.TXT' is empty."
