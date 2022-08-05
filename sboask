@@ -17,6 +17,7 @@
 
 . /etc/sboutils.conf
 
+SBO_SYNC="no"
 SBO_INFO="no"
 SBO_DEPS="no"
 SBO_DEPENDENTS="no"
@@ -26,14 +27,11 @@ SBO_ISINST="no"
 SBO_VERBOSE="no"
 
 check_settings() {
-	if [ ! "$REPO" ]; then
+	if [ ! "$RELEASE" ]; then
+		echo "'RELEASE' not specified in /etc/sboutils.conf."
+		exit 1
+	elif [ ! "$REPO" ]; then
 		echo "'REPO' not specified in /etc/sboutils.conf."
-		exit 1
-	elif [ -z "$REPO/SLACKBUILDS.TXT" ]; then
-		echo "'$REPO/SLACKBUILDS.TXT' is empty."
-		exit 1
-	elif [ -z "$REPO/TAGS.txt" ]; then
-		echo "'$REPO/TAGS.txt' is empty."
 		exit 1
 	fi
 }
@@ -222,12 +220,21 @@ dependencies_title(){
 }
 
 sync_with_repo(){
-
+	rsync -av $URL $REPO 
+	
+	if [ -z "$REPO/SLACKBUILDS.TXT" ]; then
+		echo "'$REPO/SLACKBUILDS.TXT' is empty."
+		exit 1
+	elif [ -z "$REPO/TAGS.txt" ]; then
+		echo "'$REPO/TAGS.txt' is empty."
+		exit 1
+	fi
 }
 
 helper() {
 	echo "Usage: `basename $0` [task] SlackBuild [-v]"
 	echo "Tasks:"
+	echo "  sync           sync with remote SlackBuilds repo"
 	echo "  info           display information about SlackBuild"
 	echo "  isinst         show if a package is installed"
 	echo "  dep            show dependencies chain for a SlackBuild"
@@ -241,6 +248,9 @@ helper() {
 
 options(){
 	case $1 in
+		sync)
+			SBO_SYNC="yes"
+		;;
 		info)
 			SBO_INFO="yes"
 		;;
@@ -278,8 +288,14 @@ options(){
 
 main(){
 	options "$@"
-	is_input_empty "$2"
 	
+	if [ "$SBO_SYNC" = "yes" ]; then
+		sync_with_repo
+		exit 0
+	fi
+	
+	is_input_empty "$2"
+
 	if [ "$SBO_FIND" = "yes" ] && [ ! -z "$2" ]; then
 		name_search "$2"
 		exit 0
