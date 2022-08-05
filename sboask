@@ -221,6 +221,10 @@ dependencies_title(){
 	echo "--- status and dependencies: ([i] installed, [ ] not installed)"
 }
 
+sync_with_repo(){
+
+}
+
 helper() {
 	echo "Usage: `basename $0` [task] SlackBuild [-v]"
 	echo "Tasks:"
