@@ -288,28 +288,33 @@ main(){
 	# build, install and upgrade functions below cannot be used as regular user
 	check_installpkg
 	
-	# do we want to install a package, already built?
+	# TODO: i need to carefully think whether I can simplify the if statements below...
+	
+	# directly install package if already built, but skip if installed (internal check in the install_package function)
 	if [ "$SBO_INSTALL" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "no" ]; then
 		install_package
 		exit 0
 	fi
 	
-	# do we want to upgarde a package already built?
+	# directly upgrade package if already built, but skip if same version is installed
 	if [ "$SBO_UPGRADE" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "no" ]; then
 		upgrade_package
 		exit 0
 	fi
-		
+	
+	# directly reinstall (install) package if already built
 	if [ "$SBO_INSTALL" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "yes" ]; then
 		reinstall_package
 		exit 0
 	fi
 
+	# directly reinstall (upgrade) package if already built
 	if [ "$SBO_UPGRADE" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "yes" ]; then
 		reinstall_package
 		exit 0
 	fi
 	
+	# if we made it till here, proceed with build...
 	# is package already installed?
 	if [ ! -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ]; then
 		echo "Package $PACKAGE_NAME is already installed."
@@ -322,6 +327,7 @@ main(){
 	#elif [ -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ] && [ "$SBO_UPGRADE" = "yes" ]; then
 	#	echo "Package $PACKAGE_NAME is not installed."
 	#	exit 0
+	
 	# hope that covers it... then, proceed
 	else
 		if [ $SBO_DOWNLOAD = "yes" ]; then
@@ -335,21 +341,25 @@ main(){
 	fi
 		
 	# functions to execute post-build
+	# install if package if not already installed (internal check in the install_package function)
 	if [ "$SBO_INSTALL" = "yes" ] && [ "$SBO_FORCE" = "no" ]; then
 		install_package
 		exit 0
 	fi
 
-	if [ "$SBO_UPGRADE" = "yes" ] [ "$SBO_FORCE" = "no" ]; then
+	# upgrade package if not already installed
+	if [ "$SBO_UPGRADE" = "yes" ] && [ "$SBO_FORCE" = "no" ]; then
 		upgrade_package
 		exit 0
 	fi
 
+	# reinstall
 	if [ "$SBO_INSTALL" = "yes" ] && [ "$SBO_FORCE" = "yes" ]; then
 		reinstall_package
 		exit 0
 	fi
 	
+	# reinstall
 	if [ "$SBO_UPGRADE" = "yes" ] && [ "$SBO_FORCE" = "yes" ]; then
 		reinstall_package
 		exit 0
