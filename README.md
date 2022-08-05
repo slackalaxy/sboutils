@@ -2,7 +2,7 @@
 
 Tools to manage SlackBuilds: `sboask` (shows information from [SlackBuilds.org](https://slackbuilds.org/)), `sborun` (runs a SlackBuild automatically) and `sboset` (helps with SlackBuild templates). They are written in BASH and are heavily inspired by the pkgutils and prt-get outstanding package management tools for CRUX. 
 
-I will appreaciate any feedback either by email: **slackalaxy ат gmail.com**, or on irc.libera.chat: **ppetrov^**
+This is still a work in progress, as I am testing the tools at the moment. I will appreaciate any feedback either by email: **slackalaxy ат gmail.com**, or on irc.libera.chat: **ppetrov^**
 
 ## Requirements
 * [hoorex ](https://slackbuilds.org/repository/15.0/misc/hoorex/)  (Dependency Calculator)

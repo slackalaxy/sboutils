@@ -76,7 +76,7 @@ check_installpkg(){
 load_info(){
 	. $DIRNAM.info
 	if [ "$DIRNAM" != "$PRGNAM" ]; then
-		echo "SlackBuild folder name is different than PRGNAM!"
+		echo "SlackBuild folder name is different than 'PRGNAM'!"
 		exit 1
 	fi
 }
