@@ -36,6 +36,19 @@ check_settings() {
 	fi
 }
 
+check_folder() {
+	if [ ! -d $1 ]; then
+		echo "Folder '$1' does not exist."
+		exit 1
+	elif [ ! -w $1 ]; then
+		echo "Folder '$1' not writable."
+		exit 1
+	elif [ ! -x $1 ] || [ ! -r $1 ]; then
+		echo "Folder '$1' not readable."
+		exit 1
+	fi
+}
+
 is_input_empty(){
 	if [ -z "$1" ]; then
 		echo "Input is empty. Use <`basename $0` help> for options."
@@ -215,20 +228,21 @@ hoorex_output(){
 	done
 }
 
-dependencies_title(){
+dependencies_title_info(){
 	echo "--- status and dependencies: ([i] installed, [ ] not installed)"
 }
 
+dependencies_title(){
+	echo "--- dependencies: ([i] installed, [ ] not installed)"
+}
+
+dependent_title(){
+	echo "--- dependents: ([i] installed, [ ] not installed)"
+}
+
 sync_with_repo(){
+	check_folder $SYNC
 	rsync -av $URL $SYNC 
-	
-	if [ -z "$REPO/SLACKBUILDS.TXT" ]; then
-		echo "'$REPO/SLACKBUILDS.TXT' is empty."
-		exit 1
-	elif [ -z "$REPO/TAGS.txt" ]; then
-		echo "'$REPO/TAGS.txt' is empty."
-		exit 1
-	fi
 }
 
 helper() {
@@ -322,7 +336,7 @@ main(){
 			display_maintainer
 		fi
 		display_searched "$2"
-		dependencies_title
+		dependencies_title_info
 		display_requires "$2"
 		exit 0
 	fi
@@ -335,7 +349,7 @@ main(){
 	fi
 	if [ "$SBO_DEPENDENTS" = "yes" ] && [ ! -z "$2" ]; then
 		hoorex_array "$2" DEPENDENTS
-		dependencies_title
+		dependent_title
 		hoorex_output
 		exit 0
 	fi
