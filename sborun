@@ -335,16 +335,26 @@ main(){
 	fi
 		
 	# functions to execute post-build
-	if [ "$SBO_INSTALL" = "yes" ]; then
+	if [ "$SBO_INSTALL" = "yes" ] && [ "$SBO_FORCE" = "no" ]; then
 		install_package
 		exit 0
 	fi
 
-	if [ "$SBO_UPGRADE" = "yes" ]; then
+	if [ "$SBO_UPGRADE" = "yes" ] [ "$SBO_FORCE" = "no" ]; then
 		upgrade_package
 		exit 0
 	fi
 
+	if [ "$SBO_INSTALL" = "yes" ] && [ "$SBO_FORCE" = "yes" ]; then
+		reinstall_package
+		exit 0
+	fi
+	
+	if [ "$SBO_UPGRADE" = "yes" ] && [ "$SBO_FORCE" = "yes" ]; then
+		reinstall_package
+		exit 0
+	fi
+	
 	exit 0
 }
 
