@@ -181,7 +181,11 @@ Options:
   -nc,  --no-certificate    do not check download certificate
   -h,   --help              print this help
 ```
-
+If you simply run `sborun`, it will expect to find the sources in the folder where your SlackBuild is. To download them and then proceed with build, run it as: `sborun -d`, while if you want to just download the source, use `-do`. By default, the created package is not installed, so to do this, pass the `-i` option. This will first call `installpkg --warn`, which checks if any files already present will be overwritten and then proceeds with instalation. Therefore, if you want to automatically download source, build and install the created package, run
+```
+sborun -d -i
+```
+To upgrade an older package, use `-u` in stead of `-i`. If the package is already installed or built, `sborun` will warn you and will not proceed. Therefore, to rebuild, reinstall or redownload, add the `-f` option.
 ## sboset
 This helps set up a new SlackBuild, by fetching the appropriate template (autotools, cmake, meson,...) and naming files accordingly. It also cleans up a bit, filling the program's name automatically where needed, as well as the author's credentials. It can download sources and update their md5sum, for example between version updates. It should be run from within the folder where you plan your SlackBuild to be.
 ```
