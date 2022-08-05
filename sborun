@@ -294,18 +294,18 @@ main(){
 		exit 0
 	fi
 	
-	# do we want to upgarde a package (already installed)?
-	if [ "$SBO_UPGRADE" = "yes" ] && [ -z "$PACKAGE_INST" ]; then
+	# do we want to upgarde a package already built?
+	if [ "$SBO_UPGRADE" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "no" ]; then
 		upgrade_package
 		exit 0
 	fi
 		
-	if [ "$SBO_INSTALL" = "yes" ] && [ "$SBO_FORCE" = "yes" ]; then
+	if [ "$SBO_INSTALL" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "yes" ]; then
 		reinstall_package
 		exit 0
 	fi
 
-	if [ "$SBO_UPGRADE" = "yes" ] && [ "$SBO_FORCE" = "yes" ]; then
+	if [ "$SBO_UPGRADE" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "yes" ]; then
 		reinstall_package
 		exit 0
 	fi
@@ -318,10 +318,10 @@ main(){
 	elif [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "no" ]; then
 		echo "Package $PACKAGE_NAME already exists."
 		exit 0
-	# do we want to upgrade an non-installed package?
-	elif [ -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ] && [ "$SBO_UPGRADE" = "yes" ]; then
-		echo "Package $PACKAGE_NAME is not installed."
-		exit 0
+	# do we want to upgrade a non-installed package?
+	#elif [ -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ] && [ "$SBO_UPGRADE" = "yes" ]; then
+	#	echo "Package $PACKAGE_NAME is not installed."
+	#	exit 0
 	# hope that covers it... then, proceed
 	else
 		if [ $SBO_DOWNLOAD = "yes" ]; then
