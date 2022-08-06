@@ -173,25 +173,24 @@ Maintainer: Daniil Bratashov (dn2010@gmail.com)
 [i] openbabel (Open Babel 3D Library)
 ```
 ## sborun
-This runs a SlackBuild. It should be run from within the folder containing the SlackBuild and its associated files (*.info, slack-desc,...). It can download sources, check md5sum, as well as build and install the ready package. If you just run it without any additional options it will only build the package. Of course, you should have the right permissions for this.
+This runs a SlackBuild. It should be run from within the folder containing the SlackBuild and its associated files (*.info, slack-desc,...). It can download sources, check md5sum, as well as build and install the ready package. Of course, you should have the right permissions for this.
 ```
-bash-5.1$ sborun -h
 Run sborun from within the SlackBuild containing folder.
 Usage: sborun [options]
 Options:
-  -i,   --install           build and install package
-  -u,   --upgrade           build and upgrade package
-  -d,   --download          download, check sources and build
-  -do,  --download-only     download, check sources and exit
-  -f,   --force             force operation
+  -b,   --build             build package
+  -i,   --install           install package
+  -u,   --upgrade           upgrade package
+  -ri,  --reinstall         reinstall package
+  -d,   --download          download and check sources
   -nc,  --no-certificate    do not check download certificate
   -h,   --help              print this help
 ```
-If you simply run `sborun`, it will expect to find the sources in the folder where your SlackBuild is. To download them and then proceed with build, run it as: `sborun -d`, while if you want to only download the source, use `-do`. By default, the created package is not installed, so to do this, pass the `-i` option. This will first call `installpkg --warn`, which checks if any files already present will be overwritten and then proceeds with instalation. Therefore, if you want to automatically download source, build and install the created package, run
+To build a package from a SlackBuild, run `sborun -b`, however, it will expect to find the sources in the folder where your SlackBuild is. To download them and then proceed with build, run it as: `sborun -d`. By default, the created package is not installed, so to do this, pass the `-i` option. This will first call `installpkg --warn`, which checks if any files already present will be overwritten and then proceeds with instalation. Therefore, if you want to automatically download source, build and install the created package, run:
 ```
-sborun -d -i
+sborun -d -b -i
 ```
-To upgrade an older package, use `-u` in stead of `-i`. If the package is already installed or built, `sborun` will warn you and will not proceed. Therefore, to rebuild, reinstall or redownload, add the `-f` option.
+To upgrade an older package, use `-u` in stead of `-i`. To reinstall, use the `-ri` option.
 ## sboset
 This helps set up a new SlackBuild, by fetching the appropriate template (autotools, cmake, meson,...) and naming files accordingly. It also cleans up a bit the templates, filling the program's name automatically where needed, as well as the author's credentials. It can download sources and update md5sum, which I use for example between version updates. It should be run from within the folder where you plan your SlackBuild to be.
 ```
