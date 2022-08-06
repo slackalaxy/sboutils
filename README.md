@@ -10,7 +10,7 @@ This is still a work in progress, as I am testing the tools at the moment. I wil
 * [template](./templates/) files should be in: `/usr/share/sboutils/templates`. These are the ones at [SBo](https://slackbuilds.org/templates/), I only added a `template.desktop` file.
 
 ## Configuration
-You should adjust `/etc/sbotools.conf` accordingly. Below is my configuration:
+You should adjust `/etc/sboutils.conf` accordingly. Below is my configuration:
 ```
 # The three lines below are needed if you create new SlackBuilds by <sboset>
 MAINTAINER="Petar Petrov"
@@ -22,7 +22,7 @@ ADDRESS="$EMAIL"
 # where to build and where to output packages
 RELEASE="15.0"
 URL="rsync://slackbuilds.org/slackbuilds/$RELEASE"
-SYNC="/var/lib/sbotools"
+SYNC="/var/lib/sboutils"
 REPO="$SYNC/$RELEASE"
 BUILD="/tmp/SBo"
 PKGS="/tmp"
