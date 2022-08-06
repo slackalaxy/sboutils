@@ -64,11 +64,14 @@ sync_with_repo(){
 
 check_location(){
 	CATEGORY=$(grep "/${1}$" $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | awk -F'[//]' '{print $2}')
+	LOCATION=$CATEGORY/$1
+}
+
+check_location_exit(){
 	if [ -z "$CATEGORY" ] ; then
 		echo "$1 not found on SlackBuilds.org."
 		exit 1
 	fi
-	LOCATION=$CATEGORY/$1
 }
 
 slackdesc_print(){
@@ -236,15 +239,27 @@ hoorex_output(){
 
 list_installed(){
 	for i in /var/lib/pkgtools/packages/* ; do
-		sbp=$( basename $i )
-		if echo $sbp | grep -q "_SBo" ; then
-			sbp_notag=$( echo $sbp | sed "s:_SBo::" )
-			sbp_name=${sbp_notag%-*-*-*}
-			sbp_array=( ${sbp_notag//-/ } )
-			sbp_build=${sbp_array[-1]}
-			sbp_arch=${sbp_array[-2]}
-			sbp_version=${sbp_array[-3]}
-			echo $sbp_name $sbp_version $sbp_build
+		VERSION=""
+		BUILD=""
+		if echo $i | grep -q "_SBo" ; then
+ 			sbp=$( basename "$i" )
+ 			sbp_notag=$( echo $sbp | sed 's|_SBo||g' )
+ 			sbp_name=${sbp%-*-*-*}
+ 			sbp_array=( ${sbp_notag//-/ } )
+ 			sbp_build=${sbp_array[-1]}
+ 			sbp_arch=${sbp_array[-2]}
+ 			sbp_version=${sbp_array[-3]}
+ 			check_location $sbp_name
+ 			if [[ -d "$REPO/$LOCATION" ]]; then
+ 				source <(grep 'VERSION=${VERSION:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+ 				source <(grep 'BUILD=${BUILD:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+ 				#echo $sbp_name $VERSION $sbp_version $BUILD $sbp_build
+				if [ "$VERSION" = "$sbp_version" ] && [ "$BUILD" = "$sbp_build" ]; then
+					echo "[i] $sbp_name"
+				else
+					echo "[u] $sbp_name"
+				fi
+			fi
 		fi
 	done
 }
@@ -350,7 +365,8 @@ main(){
 	fi
 	
 	check_location "$2"
-			
+	check_location_exit "$2"
+	
 	# $2 refers to position, e.g.: sboask info $2 (aka slackbuild),
 	# but comes first after the function, so it is referred as $1
 	# inside the corresponding functions! A note to my stupid self.
