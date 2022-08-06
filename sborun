@@ -19,13 +19,12 @@ DIRNAM=$(basename $PWD)
 
 . /etc/sboutils.conf
 
+SBO_BUILD="no"
 SBO_INSTALL="no"
 SBO_UPGRADE="no"
 SBO_REINSTALL="no"
 SBO_DOWNLOAD="no"
-SBO_DOWNLOAD_ONLY="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
-SBO_FORCE="no"
 
 check_settings() {
 	if [ ! "$BUILD" ]; then
@@ -220,11 +219,11 @@ helper() {
 	echo "Run `basename $0` from within the SlackBuild containing folder."
 	echo "Usage: `basename $0` [options]"
 	echo "Options:"
-	echo "  -i,   --install           build and install package"
-	echo "  -u,   --upgrade           build and upgrade package"
-	echo "  -d,   --download          download, check sources and build"
-	echo "  -do,  --download-only     download, check sources and exit"
-	echo "  -f,   --force             force operation"
+	echo "  -b,   --build             build package"
+	echo "  -i,   --install           install package"
+	echo "  -u,   --upgrade           upgrade package"
+	echo "  -ri,  --reinstall         reinstall package"
+	echo "  -d,   --download          download and check sources"
 	echo "  -nc,  --no-certificate    do not check download certificate"
 	echo "  -h,   --help              print this help"
 }
@@ -232,23 +231,23 @@ helper() {
 options(){
 	while [ "$1" ]; do
 		case $1 in
+			-b|--build)
+				SBO_BUILD="yes"
+			;;
 			-i|--install)
 				SBO_INSTALL="yes"
 			;;
   			-u|--upgrade)
 				SBO_UPGRADE="yes"
 			;;
+			-ri|--reinstall)
+				SBO_REINSTALL="yes"
+			;;
 			-d|--download)
 				SBO_DOWNLOAD="yes"
 			;;
-			-do|--download-only)
-				SBO_DOWNLOAD_ONLY="yes"
-			;;
 			-nc|--no-certificate)
 				SBO_DOWNLOAD_NO_CERTIFICATE="yes"
-			;;
-			-f|--force)
-				SBO_FORCE="yes"
 			;;
 			-h|--help|help)
 				helper
@@ -277,90 +276,32 @@ main(){
 	load_sources
 
 	# functions to execute pre-build
-	if [ $SBO_DOWNLOAD_ONLY = "yes" ]; then
+	if [ $SBO_DOWNLOAD = "yes" ]; then
 		download_source_title
 		download_source ARRAY_DOWNLOAD
-		check_md5sum_source_title
-		check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
-		exit 0
 	fi
 
 	# build, install and upgrade functions below cannot be used as regular user
 	check_installpkg
-	
-	# TODO: i need to carefully think whether I can simplify the if statements below...
-	
-	# directly install package if already built, but skip if installed (internal check in the install_package function)
-	if [ "$SBO_INSTALL" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "no" ]; then
-		install_package
-		exit 0
-	fi
-	
-	# directly upgrade package if already built, but skip if same version is installed
-	if [ "$SBO_UPGRADE" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "no" ]; then
-		upgrade_package
-		exit 0
-	fi
-	
-	# directly reinstall (install) package if already built
-	if [ "$SBO_INSTALL" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "yes" ]; then
-		reinstall_package
-		exit 0
-	fi
 
-	# directly reinstall (upgrade) package if already built
-	if [ "$SBO_UPGRADE" = "yes" ] && [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "yes" ]; then
-		reinstall_package
-		exit 0
-	fi
-	
-	# if we made it till here, proceed with build...
-	# is package already installed?
-	if [ ! -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ]; then
-		echo "Package $PACKAGE_NAME is already installed."
-		exit 0
-	# is package already built?
-	elif [ -f "$PKGS/$PACKAGE_NAME" ] && [ "$SBO_FORCE" = "no" ]; then
-		echo "Package $PACKAGE_NAME already exists."
-		exit 0
-	# do we want to upgrade a non-installed package?
-	#elif [ -z "$PACKAGE_INST" ] && [ "$SBO_FORCE" = "no" ] && [ "$SBO_UPGRADE" = "yes" ]; then
-	#	echo "Package $PACKAGE_NAME is not installed."
-	#	exit 0
-	
-	# hope that covers it... then, proceed
-	else
-		if [ $SBO_DOWNLOAD = "yes" ]; then
-			download_source_title
-			download_source ARRAY_DOWNLOAD
-		fi
+	if [ $SBO_BUILD = "yes" ]; then
 		check_md5sum_source_title
 		check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
 		report_md5sum_source
 		build
 	fi
-		
-	# functions to execute post-build
-	# install if package if not already installed (internal check in the install_package function)
-	if [ "$SBO_INSTALL" = "yes" ] && [ "$SBO_FORCE" = "no" ]; then
+
+	if [ "$SBO_INSTALL" = "yes" ]; then
 		install_package
 		exit 0
 	fi
-
-	# upgrade package if not already installed
-	if [ "$SBO_UPGRADE" = "yes" ] && [ "$SBO_FORCE" = "no" ]; then
+	
+	if [ "$SBO_UPGRADE" = "yes" ]; then
 		upgrade_package
 		exit 0
 	fi
-
-	# reinstall
-	if [ "$SBO_INSTALL" = "yes" ] && [ "$SBO_FORCE" = "yes" ]; then
-		reinstall_package
-		exit 0
-	fi
 	
-	# reinstall
-	if [ "$SBO_UPGRADE" = "yes" ] && [ "$SBO_FORCE" = "yes" ]; then
+	if [ "$SBO_REINSTALL" = "yes" ]; then
 		reinstall_package
 		exit 0
 	fi
