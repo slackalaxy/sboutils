@@ -26,6 +26,13 @@ SBO_REINSTALL="no"
 SBO_DOWNLOAD="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
 
+is_input_empty(){
+	if [ -z "$1" ]; then
+		echo "Input is empty. Use <`basename $0` help> for options."
+		exit 1
+	fi
+}
+
 check_settings() {
 	if [ ! "$BUILD" ]; then
 		echo "'BUILD' not specified in /etc/sboutils.conf."
@@ -310,6 +317,7 @@ main(){
 }
 
 check_settings
+is_input_empty "$@"
 main "$@"
 
 # End of file
