@@ -17,8 +17,13 @@ MAINTAINER="Petar Petrov"
 EMAIL="slackalaxy at gmail dot com"
 ADDRESS="$EMAIL"
 
-# Where the SBo repo is downloaded, where to build and where to output packages
-REPO="/var/lib/sbopkg/SBo/15.0"
+# Where the SBo repo release number, SBo repo url, where the repo will be 
+# synced by rsync, the whole path to the downloaded repo (this I will simplify),
+# where to build and where to output packages
+RELEASE="15.0"
+URL="rsync://slackbuilds.org/slackbuilds/$RELEASE"
+SYNC="/var/lib/sbotools"
+REPO="$SYNC/$RELEASE"
 BUILD="/tmp/SBo"
 PKGS="/tmp"
 
@@ -32,6 +37,7 @@ This asks SlackBuilds.org about stuff. It displays information about a SlackBuil
 bash-5.1$ sboask help
 Usage: sboask [task] SlackBuild [-v]
 Tasks:
+  sync           sync with remote SlackBuilds repo
   info           display information about SlackBuild
   isinst         show if a package is installed
   dep            show dependencies chain for a SlackBuild
