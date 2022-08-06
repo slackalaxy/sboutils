@@ -317,7 +317,7 @@ main(){
 }
 
 check_settings
-is_input_empty "$@"
+is_input_empty "$1"
 main "$@"
 
 # End of file
