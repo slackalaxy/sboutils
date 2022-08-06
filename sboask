@@ -25,6 +25,7 @@ SBO_FIND="no"
 SBO_KEY="no"
 SBO_ISINST="no"
 SBO_VERBOSE="no"
+SBO_INSTALLED="no"
 
 check_settings() {
 	if [ ! "$RELEASE" ]; then
@@ -54,6 +55,11 @@ is_input_empty(){
 		echo "Input is empty. Use <`basename $0` help> for options."
 		exit 1
 	fi
+}
+
+sync_with_repo(){
+	check_folder $SYNC
+	rsync -av $URL $SYNC 
 }
 
 check_location(){
@@ -228,6 +234,21 @@ hoorex_output(){
 	done
 }
 
+list_installed(){
+	for i in /var/lib/pkgtools/packages/* ; do
+		sbp=$( basename $i )
+		if echo $sbp | grep -q "_SBo" ; then
+			sbp_notag=$( echo $sbp | sed "s:_SBo::" )
+			sbp_name=${sbp_notag%-*-*-*}
+			sbp_array=( ${sbp_notag//-/ } )
+			sbp_build=${sbp_array[-1]}
+			sbp_arch=${sbp_array[-2]}
+			sbp_version=${sbp_array[-3]}
+			echo $sbp_name $sbp_version $sbp_build
+		fi
+	done
+}
+
 dependencies_title_info(){
 	echo "--- status and dependencies: ([i] installed, [ ] not installed)"
 }
@@ -240,16 +261,12 @@ dependent_title(){
 	echo "--- dependents: ([i] installed, [ ] not installed)"
 }
 
-sync_with_repo(){
-	check_folder $SYNC
-	rsync -av $URL $SYNC 
-}
-
 helper() {
 	echo "Usage: `basename $0` [task] SlackBuild [-v]"
 	echo "Tasks:"
 	echo "  sync           sync with remote SlackBuilds repo"
 	echo "  info           display information about SlackBuild"
+	echo "  installed      list installed packages"
 	echo "  isinst         show if a package is installed"
 	echo "  dep            show dependencies chain for a SlackBuild"
 	echo "  dependent      show what depends on a SlackBuild"
@@ -267,6 +284,9 @@ options(){
 		;;
 		info)
 			SBO_INFO="yes"
+		;;
+		installed)
+			SBO_INSTALLED="yes"
 		;;
 		isinst)
 			SBO_ISINST="yes"
@@ -305,6 +325,11 @@ main(){
 	
 	if [ "$SBO_SYNC" = "yes" ]; then
 		sync_with_repo
+		exit 0
+	fi
+	
+	if [ "$SBO_INSTALLED" = "yes" ]; then
+		list_installed
 		exit 0
 	fi
 	
