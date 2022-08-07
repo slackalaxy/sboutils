@@ -253,11 +253,10 @@ list_installed(){
  			if [[ -d "$REPO/$LOCATION" ]]; then
  				source <(grep 'VERSION=${VERSION:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
  				source <(grep 'BUILD=${BUILD:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
- 				#echo $sbp_name $VERSION $sbp_version $BUILD $sbp_build
 				if [ "$VERSION" = "$sbp_version" ] && [ "$BUILD" = "$sbp_build" ]; then
-					echo "[i] $sbp_name"
+					searched_status "$sbp_name" "[i]"
 				else
-					echo "[u] $sbp_name"
+					searched_status "$sbp_name" "[u]"
 				fi
 			fi
 		fi
@@ -328,6 +327,11 @@ options(){
 		;;
   	esac
 
+	case $2 in
+		-v|--verbose)
+			SBO_VERBOSE="yes"
+		;;
+	esac
 	case $3 in
 		-v|--verbose)
 			SBO_VERBOSE="yes"
