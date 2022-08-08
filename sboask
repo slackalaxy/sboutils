@@ -174,9 +174,70 @@ display_maintainer(){
 	echo -e "Maintainer: $MAINTAINER ($EMAIL)\n"
 }
 
+# find_searched(){
+# 	local p=${1} # searched entry, find below all packages with (partially) matching name, that belong to SBo: have the _SBo tag
+# 	installed_array=( $(find /var/lib/pkgtools/packages/ -name "${1}-*" | sed "s:/var/lib/pkgtools/packages/::" | grep "_SBo") )
+# 	pkg=""
+# 	if (( ${#installed_array[@]} )); then
+# 		for i in ${installed_array[@]}; do
+# 			sbp_array=( ${i//-/ } )
+# 			last_element=${#sbp_array[@]}
+# 			#limit=$(echo "$last_element - 3" | bc)
+# 			#a=0
+# 			#while [ $a -lt $limit ]; do
+# 			#	echo ${arr[$i]}
+# 			#	let i++
+# 			#done
+# 			#pkg+=$(echo "`basename ${i%-*-*-*}` ")
+# 		done
+# 		pkg_array=( $pkg )
+# 		 # how many times does our search appear in the array? 0 -- not found, 1 -- found, >1 -- error
+# 		pkg_occur=$(grep -o ${p} <<< ${pkg_array[*]} | wc -l)
+# 		if [ "$pkg_occur" = "0" ]; then
+# 			searched_status "$p" "[ ]"
+# 		elif [ "$pkg_occur" = "1" ]; then
+# 			searched_status "$p" "[i]"
+# 		elif [ "$pkg_occur" -gt "1" ]; then
+# 			searched_status "$p" "[e]"
+# 		fi
+# 	else
+# 		searched_status "$p" "[ ]"
+# 	fi
+# }
+
+list_searched(){
+	local p=${1}
+	VERSION=""
+	BUILD=""
+	installed_array=( $(ls /var/lib/pkgtools/packages/ | rev | grep -w `echo "${p}" | rev` | sed "s:-: :3" | rev | grep -P "(?<![\w-])${p}(?![\w-])" | sed "s: :-:" | sed "s:_SBo::") )
+	if [ "${#installed_array[@]}" -eq "0" ]; then
+		searched_status "$p" "[ ]"
+ 	elif [ "${#installed_array[@]}" -gt "1" ]; then
+ 		searched_status "$p" "[e]"
+	elif [ "${#installed_array[@]}" -eq "1" ]; then
+		sbp_array=( ${installed_array[0]//-/ } )
+		sbp_name=${installed_array[0]%-*-*-*}
+		sbp_build=${sbp_array[-1]}
+		sbp_version=${sbp_array[-3]}
+		#echo "[i] $sbp_name ($sbp_version) <$sbp_build>"
+		check_location $sbp_name
+		if [[ -d "$REPO/$LOCATION" ]]; then
+ 			source <(grep 'VERSION=${VERSION:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+ 			source <(grep 'BUILD=${BUILD:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+			if [ "$VERSION" = "$sbp_version" ] && [ "$BUILD" = "$sbp_build" ]; then
+				searched_status "$sbp_name" "[i]"
+			else
+				searched_status "$sbp_name" "[u]"
+				# UPDATE_${sbp_name}="yes"
+			fi
+		fi
+	fi
+}
+
 searched_status(){
 	if [ "$SBO_VERBOSE" = "yes" ]; then
-		check_location $1
+		# call <check_location> from withing whatever uses <searched_status>
+		#check_location $1
 		if [ -f $REPO/$LOCATION/slack-desc ]; then
 			slackdesc_print $REPO/$LOCATION/slack-desc
 			echo "$2 $1 ($slackdesc)"
@@ -188,32 +249,10 @@ searched_status(){
 	fi
 }
 
-display_searched(){
-	local p=${1} # searched entry
-	# check if dependency ($1) is among installed pkgs
-	installed=$(find /var/lib/pkgtools/packages/ -name "${1}-*")
-	installed_array=( $installed )
-	pkg=""
-	if [ ! -z "$installed" ]; then
-		for i in ${installed_array[@]}; do
-			pkg+=$(echo "`basename ${i%-*-*-*}` ")
-		done
-
-		pkg_array=( $pkg )
-		if [[ " ${pkg_array[*]} " =~ " ${p} " ]]; then
-			searched_status "$p" "[i]"
-		elif [[ ! " ${pkg_array[*]} " =~ " ${p} " ]]; then
-			searched_status "$p" "[ ]"
-		fi
-	elif [ -z "$installed" ]; then
-		searched_status "$p" "[ ]"
-	fi
-}
-
 display_requires(){
 	requires_array=( $REQUIRES )
 	for d in ${requires_array[@]}; do
-		display_searched $d
+		list_searched $d
 	done
 }
 
@@ -233,8 +272,16 @@ hoorex_array(){
 hoorex_output(){
 	hoorex_array=( $hoorex )
 	for h in ${hoorex_array[@]}; do
-		display_searched $h
+		list_searched $h
 	done
+}
+
+list_installed(){
+	cd /var/lib/pkgtools/packages/
+	for i in * ; do
+		list_searched $i
+	done
+	cd -
 }
 
 list_installed(){
@@ -247,7 +294,7 @@ list_installed(){
  			sbp_name=${sbp%-*-*-*}
  			sbp_array=( ${sbp_notag//-/ } )
  			sbp_build=${sbp_array[-1]}
- 			sbp_arch=${sbp_array[-2]}
+ 			#sbp_arch=${sbp_array[-2]}
  			sbp_version=${sbp_array[-3]}
  			check_location $sbp_name
  			if [[ -d "$REPO/$LOCATION" ]]; then
@@ -264,15 +311,19 @@ list_installed(){
 }
 
 dependencies_title_info(){
-	echo "--- status and dependencies: ([i] installed, [ ] not installed)"
+	echo "--- status and dependencies: ([i] installed, [u] upgradable, [ ] not installed, [e] error)"
 }
 
 dependencies_title(){
-	echo "--- dependencies: ([i] installed, [ ] not installed)"
+	echo "--- dependencies: ([i] installed, [u] upgradable, [ ] not installed, [e] error)"
 }
 
 dependent_title(){
-	echo "--- dependents: ([i] installed, [ ] not installed)"
+	echo "--- dependents: ([i] installed, [u] upgradable, [ ] not installed, [e] error)"
+}
+
+installed_title(){
+	echo "--- packages: ([i] installed, [u] upgradable, [e] error)"
 }
 
 helper() {
@@ -327,11 +378,13 @@ options(){
 		;;
   	esac
 
+	# used when showing info on many packages
 	case $2 in
 		-v|--verbose)
 			SBO_VERBOSE="yes"
 		;;
 	esac
+	# This is used when showing info of a package
 	case $3 in
 		-v|--verbose)
 			SBO_VERBOSE="yes"
@@ -348,7 +401,9 @@ main(){
 	fi
 	
 	if [ "$SBO_INSTALLED" = "yes" ]; then
+		installed_title
 		list_installed
+		installed_title
 		exit 0
 	fi
 	
@@ -364,7 +419,7 @@ main(){
 	fi
 		
 	if [ "$SBO_ISINST" = "yes" ] && [ ! -z "$2" ]; then
-		display_searched "$2"
+		list_searched "$2"
 		exit 0
 	fi
 	
@@ -380,7 +435,7 @@ main(){
 			display_sources
 			display_maintainer
 		fi
-		display_searched "$2"
+		list_searched "$2"
 		dependencies_title_info
 		display_requires "$2"
 		exit 0
