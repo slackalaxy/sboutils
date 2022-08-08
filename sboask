@@ -277,11 +277,12 @@ hoorex_output(){
 }
 
 list_installed(){
-	cd /var/lib/pkgtools/packages/
-	for i in * ; do
-		list_searched $i
+	for i in /var/lib/pkgtools/packages/* ; do
+		if echo $i | grep -q "_SBo" ; then
+			s=$(basename "${i%-*-*-*}")
+			list_searched $s
+		fi
 	done
-	cd -
 }
 
 # list_installed(){
