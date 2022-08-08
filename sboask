@@ -284,31 +284,31 @@ list_installed(){
 	cd -
 }
 
-list_installed(){
-	for i in /var/lib/pkgtools/packages/* ; do
-		VERSION=""
-		BUILD=""
-		if echo $i | grep -q "_SBo" ; then
- 			sbp=$( basename "$i" )
- 			sbp_notag=$( echo $sbp | sed 's|_SBo||g' )
- 			sbp_name=${sbp%-*-*-*}
- 			sbp_array=( ${sbp_notag//-/ } )
- 			sbp_build=${sbp_array[-1]}
- 			#sbp_arch=${sbp_array[-2]}
- 			sbp_version=${sbp_array[-3]}
- 			check_location $sbp_name
- 			if [[ -d "$REPO/$LOCATION" ]]; then
- 				source <(grep 'VERSION=${VERSION:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
- 				source <(grep 'BUILD=${BUILD:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
-				if [ "$VERSION" = "$sbp_version" ] && [ "$BUILD" = "$sbp_build" ]; then
-					searched_status "$sbp_name" "[i]"
-				else
-					searched_status "$sbp_name" "[u]"
-				fi
-			fi
-		fi
-	done
-}
+# list_installed(){
+# 	for i in /var/lib/pkgtools/packages/* ; do
+# 		VERSION=""
+# 		BUILD=""
+# 		if echo $i | grep -q "_SBo" ; then
+#  			sbp=$( basename "$i" )
+#  			sbp_notag=$( echo $sbp | sed 's|_SBo||g' )
+#  			sbp_name=${sbp%-*-*-*}
+#  			sbp_array=( ${sbp_notag//-/ } )
+#  			sbp_build=${sbp_array[-1]}
+#  			#sbp_arch=${sbp_array[-2]}
+#  			sbp_version=${sbp_array[-3]}
+#  			check_location $sbp_name
+#  			if [[ -d "$REPO/$LOCATION" ]]; then
+#  				source <(grep 'VERSION=${VERSION:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+#  				source <(grep 'BUILD=${BUILD:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+# 				if [ "$VERSION" = "$sbp_version" ] && [ "$BUILD" = "$sbp_build" ]; then
+# 					searched_status "$sbp_name" "[i]"
+# 				else
+# 					searched_status "$sbp_name" "[u]"
+# 				fi
+# 			fi
+# 		fi
+# 	done
+# }
 
 dependencies_title_info(){
 	echo "--- status and dependencies: ([i] installed, [u] upgradable, [ ] not installed, [e] error)"
