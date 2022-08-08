@@ -332,6 +332,7 @@ helper() {
 	echo "  sync           sync with remote SlackBuilds repo"
 	echo "  info           display information about SlackBuild"
 	echo "  installed      list installed packages"
+	echo "  diff           list version differences of packages"
 	echo "  isinst         show if a package is installed"
 	echo "  dep            show dependencies chain for a SlackBuild"
 	echo "  dependent      show what depends on a SlackBuild"
@@ -352,6 +353,9 @@ options(){
 		;;
 		installed)
 			SBO_INSTALLED="yes"
+		;;
+		diff)
+			SBO_DIFF="yes"
 		;;
 		isinst)
 			SBO_ISINST="yes"
