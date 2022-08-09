@@ -152,7 +152,7 @@ source_and_md5sum(){
 }
 
 display_sources(){
-	if [ -z $DOWNLOAD_x86_64 ]; then
+	if [ ! "$DOWNLOAD_x86_64" ]; then
 		read -r -d '' -a ARRAY_DOWNLOAD < <( echo "$DOWNLOAD" && printf '\0' )
 		read -r -d '' -a ARRAY_MD5SUM < <( echo "$MD5SUM" && printf '\0' )
 		echo "--- sources (md5sum | filename):"
@@ -164,7 +164,7 @@ display_sources(){
 		echo "--- sources 32bit (md5sum | filename):"
 		source_and_md5sum ARRAY_DOWNLOAD ARRAY_MD5SUM
 	fi
-	if [ "$DOWNLOAD_x86_64" != "UNSUPPORTED" ] && [ "$DOWNLOAD_x86_64" != "UNTESTED" ] && [ ! -z $DOWNLOAD_x86_64 ]; then
+	if [ "$DOWNLOAD_x86_64" != "UNSUPPORTED" ] && [ "$DOWNLOAD_x86_64" != "UNTESTED" ] && [ ! -z "$DOWNLOAD_x86_64" ]; then
 		read -r -d '' -a ARRAY_DOWNLOAD_x86_64 < <( echo "$DOWNLOAD_x86_64" && printf '\0' )
 		read -r -d '' -a ARRAY_MD5SUM_x86_64 < <( echo "$MD5SUM_x86_64" && printf '\0' )
 		echo "--- sources 64bit (md5sum | filename):"
