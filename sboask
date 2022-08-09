@@ -19,12 +19,14 @@
 
 SBO_SYNC="no"
 SBO_INFO="no"
+SBO_DIFF="no"
 SBO_DEPS="no"
 SBO_DEPENDENTS="no"
 SBO_FIND="no"
 SBO_KEY="no"
 SBO_ISINST="no"
 SBO_VERBOSE="no"
+SBO_INSTALLED="no"
 
 check_settings() {
 	if [ ! "$RELEASE" ]; then
@@ -56,13 +58,21 @@ is_input_empty(){
 	fi
 }
 
+sync_with_repo(){
+	check_folder $SYNC
+	rsync -av $URL $SYNC 
+}
+
 check_location(){
 	CATEGORY=$(grep "/${1}$" $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | awk -F'[//]' '{print $2}')
+	LOCATION=$CATEGORY/$1
+}
+
+check_location_exit(){
 	if [ -z "$CATEGORY" ] ; then
 		echo "$1 not found on SlackBuilds.org."
 		exit 1
 	fi
-	LOCATION=$CATEGORY/$1
 }
 
 slackdesc_print(){
@@ -165,46 +175,130 @@ display_maintainer(){
 	echo -e "Maintainer: $MAINTAINER ($EMAIL)\n"
 }
 
-searched_status(){
-	if [ "$SBO_VERBOSE" = "yes" ]; then
-		check_location $1
-		if [ -f $REPO/$LOCATION/slack-desc ]; then
-			slackdesc_print $REPO/$LOCATION/slack-desc
-			echo "$2 $1 ($slackdesc)"
-		else
-			echo "$2 $1"
-		fi
-	else
-		echo "$2 $1"
+# find_searched(){
+# 	local p=${1} # searched entry, find below all packages with (partially) matching name, that belong to SBo: have the _SBo tag
+# 	installed_array=( $(find /var/lib/pkgtools/packages/ -name "${1}-*" | sed "s:/var/lib/pkgtools/packages/::" | grep "_SBo") )
+# 	pkg=""
+# 	if (( ${#installed_array[@]} )); then
+# 		for i in ${installed_array[@]}; do
+# 			sbp_array=( ${i//-/ } )
+# 			last_element=${#sbp_array[@]}
+# 			#limit=$(echo "$last_element - 3" | bc)
+# 			#a=0
+# 			#while [ $a -lt $limit ]; do
+# 			#	echo ${arr[$i]}
+# 			#	let i++
+# 			#done
+# 			#pkg+=$(echo "`basename ${i%-*-*-*}` ")
+# 		done
+# 		pkg_array=( $pkg )
+# 		 # how many times does our search appear in the array? 0 -- not found, 1 -- found, >1 -- error
+# 		pkg_occur=$(grep -o ${p} <<< ${pkg_array[*]} | wc -l)
+# 		if [ "$pkg_occur" = "0" ]; then
+# 			searched_status "$p" "[ ]"
+# 		elif [ "$pkg_occur" = "1" ]; then
+# 			searched_status "$p" "[i]"
+# 		elif [ "$pkg_occur" -gt "1" ]; then
+# 			searched_status "$p" "[e]"
+# 		fi
+# 	else
+# 		searched_status "$p" "[ ]"
+# 	fi
+# }
+
+show_installed_package(){
+	sbp_installed=""
+	sbo_list_all=$(find /var/log/packages/ -name "${1}-*")
+	if [ ! -z "$sbo_list_all" ]; then
+		for t in $(ls -1 /var/log/packages/${1}-*); do
+			if [ -n "$(echo $t |rev |cut -d/ -f1 |cut -d- -f4- |rev |grep ${1}$)" ]; then
+				sbp_installed+=$(echo "$t " | sed "s:/var/log/packages/::" | sed "s:_SBo::")
+			fi
+		done
 	fi
 }
 
-display_searched(){
-	local p=${1} # searched entry
-	# check if dependency ($1) is among installed pkgs
-	installed=$(find /var/lib/pkgtools/packages/ -name "${1}-*")
-	installed_array=( $installed )
-	pkg=""
-	if [ ! -z "$installed" ]; then
-		for i in ${installed_array[@]}; do
-			pkg+=$(echo "`basename ${i%-*-*-*}` ")
-		done
-
-		pkg_array=( $pkg )
-		if [[ " ${pkg_array[*]} " =~ " ${p} " ]]; then
-			searched_status "$p" "[i]"
-		elif [[ ! " ${pkg_array[*]} " =~ " ${p} " ]]; then
-			searched_status "$p" "[ ]"
+list_searched(){
+	local p=${1}
+	VERSION=""
+	BUILD=""
+	show_installed_package $p
+	#installed_array=( $(ls /var/lib/pkgtools/packages/ | rev | grep -w `echo "${p}" | rev` | sed "s:-: :3" | rev | grep -P "(?<![\w-])${p}(?![\w-])" | sed "s: :-:" | sed "s:_SBo::") )
+	installed_array=( $sbp_installed )
+	
+	if [ "${#installed_array[@]}" -eq "0" ]; then
+		searched_status "[ ]" "$p"
+ 	elif [ "${#installed_array[@]}" -gt "1" ]; then
+ 		searched_status "[e]" "$p"
+	elif [ "${#installed_array[@]}" -eq "1" ]; then
+		sbp_array=( ${installed_array[0]//-/ } )
+		sbp_name=${installed_array[0]%-*-*-*}
+		sbp_build=${sbp_array[-1]}
+		sbp_version=${sbp_array[-3]}
+		#echo "[i] $sbp_name ($sbp_version) <$sbp_build>"
+		check_location $sbp_name
+		if [[ -d "$REPO/$LOCATION" ]]; then
+ 			source <(grep 'VERSION=${VERSION:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+ 			source <(grep 'BUILD=${BUILD:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+			if [ "$VERSION" = "$sbp_version" ] && [ "$BUILD" = "$sbp_build" ]; then
+				searched_status "[i]" "$sbp_name"
+			else
+				searched_status "[u]" "$sbp_name"
+				# UPDATE_${sbp_name}="yes"
+			fi
 		fi
-	elif [ -z "$installed" ]; then
-		searched_status "$p" "[ ]"
+	fi
+}
+
+list_upgrades(){
+	local p=${1}
+	VERSION=""
+	BUILD=""
+	show_installed_package $p
+	installed_array=( $sbp_installed )
+	if [ "${#installed_array[@]}" -eq "0" ]; then
+		searched_status "[ ]" "$p"
+ 	elif [ "${#installed_array[@]}" -gt "1" ]; then
+ 		searched_status "[e]" "$p"
+	elif [ "${#installed_array[@]}" -eq "1" ]; then
+		sbp_array=( ${installed_array[0]//-/ } )
+		sbp_name=${installed_array[0]%-*-*-*}
+		sbp_build=${sbp_array[-1]}
+		sbp_version=${sbp_array[-3]}
+		#echo "[i] $sbp_name ($sbp_version) <$sbp_build>"
+		check_location $sbp_name
+		if [[ -d "$REPO/$LOCATION" ]]; then
+ 			source <(grep 'VERSION=${VERSION:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+ 			source <(grep 'BUILD=${BUILD:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+			if [ "$VERSION" != "$sbp_version" ] || [ "$BUILD" != "$sbp_build" ]; then
+				searched_status "[u]" "$sbp_name" "$sbp_version" "$sbp_build" "$VERSION" "$BUILD"
+				#UPDATE_${sbp_name}="yes"
+			fi
+		fi
+	fi
+}
+
+searched_status(){
+	if [ "$SBO_VERBOSE" = "yes" ]; then
+		# call <check_location> from withing whatever uses <searched_status>
+		#check_location $1
+		if [ -f $REPO/$LOCATION/slack-desc ]; then
+			slackdesc_print $REPO/$LOCATION/slack-desc
+			echo "$1 $2 ($slackdesc)"
+		else
+			echo "$1 $2"
+		fi
+	elif [ "$SBO_DIFF" = "yes" ]; then
+		echo "$1 $2 $3-$4 --> $5-$6"
+	else
+		echo "$1 $2"
 	fi
 }
 
 display_requires(){
 	requires_array=( $REQUIRES )
 	for d in ${requires_array[@]}; do
-		display_searched $d
+		list_searched $d
 	done
 }
 
@@ -224,25 +318,34 @@ hoorex_array(){
 hoorex_output(){
 	hoorex_array=( $hoorex )
 	for h in ${hoorex_array[@]}; do
-		display_searched $h
+		list_searched $h
+	done
+}
+
+list_installed(){
+	for i in /var/lib/pkgtools/packages/* ; do
+		if echo $i | grep -q "_SBo" ; then
+			s=$(basename "${i%-*-*-*}")
+			list_searched $s
+		fi
+	done
+}
+
+list_differences(){
+	for i in /var/lib/pkgtools/packages/* ; do
+		if echo $i | grep -q "_SBo" ; then
+			f=$(basename "${i%-*-*-*}")
+			list_upgrades $f
+		fi
 	done
 }
 
 dependencies_title_info(){
-	echo "--- status and dependencies: ([i] installed, [ ] not installed)"
+	echo "--- status: ([i] installed, [u] upgradable, [ ] not installed, [e] error)"
 }
 
-dependencies_title(){
-	echo "--- dependencies: ([i] installed, [ ] not installed)"
-}
-
-dependent_title(){
-	echo "--- dependents: ([i] installed, [ ] not installed)"
-}
-
-sync_with_repo(){
-	check_folder $SYNC
-	rsync -av $URL $SYNC 
+installed_title(){
+	echo "--- status: ([i] installed, [u] upgradable, [e] error)"
 }
 
 helper() {
@@ -250,6 +353,8 @@ helper() {
 	echo "Tasks:"
 	echo "  sync           sync with remote SlackBuilds repo"
 	echo "  info           display information about SlackBuild"
+	echo "  installed      list installed packages"
+	echo "  diff           list version differences of packages"
 	echo "  isinst         show if a package is installed"
 	echo "  dep            show dependencies chain for a SlackBuild"
 	echo "  dependent      show what depends on a SlackBuild"
@@ -267,6 +372,12 @@ options(){
 		;;
 		info)
 			SBO_INFO="yes"
+		;;
+		installed)
+			SBO_INSTALLED="yes"
+		;;
+		diff)
+			SBO_DIFF="yes"
 		;;
 		isinst)
 			SBO_ISINST="yes"
@@ -293,6 +404,13 @@ options(){
 		;;
   	esac
 
+	# used when showing info on many packages
+	case $2 in
+		-v|--verbose)
+			SBO_VERBOSE="yes"
+		;;
+	esac
+	# This is used when showing info of a package
 	case $3 in
 		-v|--verbose)
 			SBO_VERBOSE="yes"
@@ -308,6 +426,20 @@ main(){
 		exit 0
 	fi
 	
+	if [ "$SBO_INSTALLED" = "yes" ]; then
+		installed_title
+		list_installed
+		installed_title
+		exit 0
+	fi
+	
+	if [ "$SBO_DIFF" = "yes" ]; then
+		installed_title
+		list_differences
+		installed_title
+		exit 0
+	fi
+	
 	is_input_empty "$2"
 
 	if [ "$SBO_FIND" = "yes" ] && [ ! -z "$2" ]; then
@@ -320,12 +452,13 @@ main(){
 	fi
 		
 	if [ "$SBO_ISINST" = "yes" ] && [ ! -z "$2" ]; then
-		display_searched "$2"
+		list_searched "$2"
 		exit 0
 	fi
 	
 	check_location "$2"
-			
+	check_location_exit "$2"
+	
 	# $2 refers to position, e.g.: sboask info $2 (aka slackbuild),
 	# but comes first after the function, so it is referred as $1
 	# inside the corresponding functions! A note to my stupid self.
@@ -335,7 +468,7 @@ main(){
 			display_sources
 			display_maintainer
 		fi
-		display_searched "$2"
+		list_searched "$2"
 		dependencies_title_info
 		display_requires "$2"
 		exit 0
@@ -343,13 +476,13 @@ main(){
 
 	if [ "$SBO_DEPS" = "yes" ] && [ ! -z "$2" ]; then
 		hoorex_array "$2" DEPS
-		dependencies_title
+		dependencies_title_info
 		hoorex_output
 		exit 0
 	fi
 	if [ "$SBO_DEPENDENTS" = "yes" ] && [ ! -z "$2" ]; then
 		hoorex_array "$2" DEPENDENTS
-		dependent_title
+		dependencies_title_info
 		hoorex_output
 		exit 0
 	fi

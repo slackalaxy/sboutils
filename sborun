@@ -34,8 +34,8 @@ is_input_empty(){
 }
 
 check_settings() {
-	if [ ! "$BUILD" ]; then
-		echo "'BUILD' not specified in /etc/sboutils.conf."
+	if [ ! "$BUILDS" ]; then
+		echo "'BUILDS' not specified in /etc/sboutils.conf."
 		exit 1
 	elif [ ! "$PKGS" ]; then
 		echo "'PKGS' not specified in /etc/sboutils.conf."
@@ -272,7 +272,7 @@ options(){
 main(){
 	options "$@"
 	check_folder $PWD
-	check_folder $BUILD
+	check_folder $BUILDS
 	check_files $DIRNAM.SlackBuild
 	check_files $DIRNAM.info
 	load_info
