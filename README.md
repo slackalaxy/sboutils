@@ -61,7 +61,7 @@ This will create a subfolder `15.0` -- the Slackware/SlackBuilds version that we
 ```
 hoorex -s /var/lib/sboutils/15.0/
 ```
-As an example, let's consider **rstudio-desktop** and display information about it, using the `info` task. This outputs the following, with a list of immediate dependencies, indicating which ones are already installed, as well as dependencies with potential updates:
+As an example, let's consider **rstudio-desktop** and display information about it, using the `info` task. This outputs the following, with a list of immediate dependencies, indicating which ones are already installed and those with potential updates:
 ```
 bash-5.1$ sboask info rstudio-desktop
 
@@ -82,7 +82,7 @@ A rstudio-desktop-legacy SlackBuild for 32-bit systems is available.
 Keywords: R, IDE, statistics, data, analytics
 
 [ ] rstudio-desktop
---- status: ([i] installed, [u] update, [ ] not installed, [e] error)
+--- status: ([i] installed, [u] update, [ ] not installed)
 [i] R
 [u] pandoc-bin
 [i] yaml-cpp
@@ -93,10 +93,10 @@ Keywords: R, IDE, statistics, data, analytics
 [i] mathjax2
 [ ] soci
 ```
-Note, that if you happen to have a package installed twice, it will be marked with an error box. Let's display the full list of **rstudio-desktop** dependencies by `dep`:
+Note, that if you happen to have a package installed twice, it will be marked with an error box `[e]` (not indicated in the legend, since it should not happen). Let's display the full list of **rstudio-desktop** dependencies by `dep`:
 ```
 bash-5.1$ sboask dep rstudio-desktop
---- status: ([i] installed, [u] update, [ ] not installed, [e] error)
+--- status: ([i] installed, [u] update, [ ] not installed)
 [i] yaml-cpp
 [u] apache-ant
 [u] nodejs
@@ -114,7 +114,7 @@ bash-5.1$ sboask dep rstudio-desktop
 Let's see what depends on **R**, by `dependent`, but this time we'll pass the `--verbose` option to also show the short description for each:
 ```
 bash-5.1$ sboask dependent R --verbose
---- status: ([i] installed, [u] update, [ ] not installed, [e] error)
+--- status: ([i] installed, [u] update, [ ] not installed)
 [i] R (language and environment for statistical computing)
 [ ] cistrome-mdseqpos (Cistrome Applications Harvard mdseqpos)
 [ ] rstudio-desktop-legacy (R Statistical IDE)
