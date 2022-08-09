@@ -341,11 +341,15 @@ list_differences(){
 }
 
 dependencies_title_info(){
-	echo "--- status: ([i] installed, [u] upgradable, [ ] not installed, [e] error)"
+	echo "--- status: ([i] installed, [u] update, [ ] not installed, [e] error)"
 }
 
 installed_title(){
-	echo "--- status: ([i] installed, [u] upgradable, [e] error)"
+	echo "--- status: ([i] installed, [u] update, [e] error)"
+}
+
+updates_title(){
+	echo "--- status: ([u] update, [e] error; local --> SBo)"
 }
 
 helper() {
@@ -354,7 +358,7 @@ helper() {
 	echo "  sync           sync with remote SlackBuilds repo"
 	echo "  info           display information about SlackBuild"
 	echo "  installed      list installed packages"
-	echo "  diff           list version differences of packages"
+	echo "  updates        list potential updates of packages"
 	echo "  isinst         show if a package is installed"
 	echo "  dep            show dependencies chain for a SlackBuild"
 	echo "  dependent      show what depends on a SlackBuild"
@@ -376,7 +380,7 @@ options(){
 		installed)
 			SBO_INSTALLED="yes"
 		;;
-		diff)
+		updates)
 			SBO_DIFF="yes"
 		;;
 		isinst)
@@ -434,9 +438,9 @@ main(){
 	fi
 	
 	if [ "$SBO_DIFF" = "yes" ]; then
-		installed_title
+		updates_title
 		list_differences
-		installed_title
+		updates_title
 		exit 0
 	fi
 	
