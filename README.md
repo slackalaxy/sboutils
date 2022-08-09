@@ -30,7 +30,6 @@ PKGS="/tmp"
 # Specify your architecture: "x86_64" or "x86"
 ARCH="x86_64"
 ```
-
 ## sboask
 This asks SlackBuilds.org about stuff. It displays information about a SlackBuild (including immediate list of dependencies and whether they are already installed), uses [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/) to generate a full list of dependencies, or reverse-dependencies (dependents) -- SlackBuilds that depend on the searched entry. It can also show all installed packages from SBo, as well as the ones with potential updates pending. Finally, `sboask` can also search by name or a keyword. What it **cannot** do is build and install from SBo.
 ```
@@ -49,6 +48,18 @@ Tasks:
   help           print this help
 Option:
   -v, --verbose  display short description of package
+```
+Before start, make sure the folder where SBo repo will be downloaded exists:
+```
+mkdir -p /var/lib/sboutils
+```
+Then, `sync` with repo:
+```
+sboask sync
+```
+Finally, point hoorex to it:
+```
+hoorex -s /var/lib/sboutils/15.0/
 ```
 As an example, let's consider **rstudio-desktop** and display information about it, using the `info` task. This outputs the following, with a list of immediate dependencies, indicating which ones are already installed, as well as dependencies with potential updates:
 ```
