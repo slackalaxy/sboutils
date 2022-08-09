@@ -150,7 +150,7 @@ a46e501a201be6c3c05c0f770c375372 | node-v16.14.0-linux-x64.tar.gz
 Maintainer: Isaac Yu (isaacyu1@isaacyu1.com)
 
 [ ] rstudio-desktop (R Statistical IDE)
---- status: ([i] installed, [u] update, [ ] not installed, [e] error)
+--- status: ([i] installed, [u] update, [ ] not installed)
 [i] R (language and environment for statistical computing)
 [u] pandoc-bin (a universal document converter)
 [i] yaml-cpp (YAML parser)
@@ -186,7 +186,7 @@ bash-5.1$ sboask isinst libgnome
 To view all potential updates, use the `update` task. Note that this will report differences between SBo and installed packages as updates, irregardless of the actual version number. For example, I have updated locally some of the SlackBuilds I maintain, but have not submitted them yet to SBo:
 ```
 bash-5.1$ sboask updates
---- status: ([u] update, [e] error; local --> SBo)
+--- status: ([u] update; local --> SBo)
 [u] DendroPy 4.5.1-1 --> 4.4.0-1
 [u] PhyML 3.3.20220408-1 --> 3.3.20200621-1
 [u] aliview 1.28-2 --> 1.28-1
@@ -203,12 +203,11 @@ bash-5.1$ sboask updates
 [u] openoffice.org 4.1.7_en_US-1 --> 4.1.7-1
 [u] pandoc-bin 2.18-1 --> 2.19-1
 [u] seaview 5.0.5-1 --> 5.0.4-1
---- status: ([u] update, [e] error; local --> SBo)
 ```
 If you want to see everything that you have installed from SBo, pass the `installed` task:
 ```
 bash-5.1$ sboask installed
---- status: ([i] installed, [u] update, [e] error)
+--- status: ([i] installed, [u] update)
 [i] BeautifulSoup4
 [i] CAFS_divergence
 [i] CAPS_coevolution
@@ -227,7 +226,7 @@ bash-5.1$ sboask installed
 [i] R
 ... (snip long list)
 [i] zulu-openjdk8
---- status: ([i] installed, [u] update, [e] error)
+--- status: ([i] installed, [u] update)
 ```
 ## sborun
 This runs a SlackBuild. It should be run from within the folder containing the SlackBuild and its associated files (*.info, slack-desc,...). It can download sources, check md5sum, as well as build and install the ready package. Of course, you should have the right permissions for this.
