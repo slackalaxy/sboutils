@@ -105,12 +105,12 @@ Let's see what depends on **R**, by `dependent`, but this time we'll pass the `-
 bash-5.1$ sboask dependent R --verbose
 --- status: ([i] installed, [u] update, [ ] not installed, [e] error)
 [i] R (language and environment for statistical computing)
-[ ] cistrome-conductGO (language and environment for statistical computing)
-[ ] rstudio-desktop (language and environment for statistical computing)
-[ ] cistrome-mdseqpos (language and environment for statistical computing)
+[ ] cistrome-mdseqpos (Cistrome Applications Harvard mdseqpos)
+[ ] rstudio-desktop-legacy (R Statistical IDE)
 [i] SeqMonk (A Mapped Sequence Analysis tool)
-[ ] rpy2 (A Mapped Sequence Analysis tool)
-[ ] rstudio-desktop-legacy (A Mapped Sequence Analysis tool)
+[ ] cistrome-conductGO (find the top-n highest expressed TFs)
+[ ] rpy2 (R in Python)
+[ ] rstudio-desktop (R Statistical IDE)
 ```
 When used with `info`, the sources name, md5sum and maintainer information will also be displayed, for example for **ghemical**:
 ```
