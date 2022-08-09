@@ -57,7 +57,7 @@ Then, `sync` with repo:
 ```
 sboask sync
 ```
-Finally, point hoorex to it:
+This will create a subfolder `15.0` -- the Slackware/SlackBuilds version that we use. Finally, point `hoorex` to the folder where the repo was downloaded. Do this also as a normal user, if you do not want to be root when using `sboask`.
 ```
 hoorex -s /var/lib/sboutils/15.0/
 ```
