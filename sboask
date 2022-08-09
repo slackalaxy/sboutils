@@ -255,7 +255,6 @@ list_upgrades(){
 	VERSION=""
 	BUILD=""
 	show_installed_package $p
-	#installed_array=( $(ls /var/lib/pkgtools/packages/ | rev | grep -w `echo "${p}" | rev` | sed "s:-: :3" | rev | grep -P "(?<![\w-])${p}(?![\w-])" | sed "s: :-:" | sed "s:_SBo::") )
 	installed_array=( $sbp_installed )
 	if [ "${#installed_array[@]}" -eq "0" ]; then
 		searched_status "[ ]" "$p"
@@ -342,19 +341,11 @@ list_differences(){
 }
 
 dependencies_title_info(){
-	echo "--- status and dependencies: ([i] installed, [u] upgradable, [ ] not installed, [e] error)"
-}
-
-dependencies_title(){
-	echo "--- dependencies: ([i] installed, [u] upgradable, [ ] not installed, [e] error)"
-}
-
-dependent_title(){
-	echo "--- dependents: ([i] installed, [u] upgradable, [ ] not installed, [e] error)"
+	echo "--- status: ([i] installed, [u] upgradable, [ ] not installed, [e] error)"
 }
 
 installed_title(){
-	echo "--- packages: ([i] installed, [u] upgradable, [e] error)"
+	echo "--- status: ([i] installed, [u] upgradable, [e] error)"
 }
 
 helper() {
@@ -443,7 +434,9 @@ main(){
 	fi
 	
 	if [ "$SBO_DIFF" = "yes" ]; then
+		installed_title
 		list_differences
+		installed_title
 		exit 0
 	fi
 	
@@ -483,13 +476,13 @@ main(){
 
 	if [ "$SBO_DEPS" = "yes" ] && [ ! -z "$2" ]; then
 		hoorex_array "$2" DEPS
-		dependencies_title
+		dependencies_title_info
 		hoorex_output
 		exit 0
 	fi
 	if [ "$SBO_DEPENDENTS" = "yes" ] && [ ! -z "$2" ]; then
 		hoorex_array "$2" DEPENDENTS
-		dependent_title
+		dependencies_title_info
 		hoorex_output
 		exit 0
 	fi
