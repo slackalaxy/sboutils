@@ -254,8 +254,9 @@ list_upgrades(){
 	local p=${1}
 	VERSION=""
 	BUILD=""
+	show_installed_package $p
 	#installed_array=( $(ls /var/lib/pkgtools/packages/ | rev | grep -w `echo "${p}" | rev` | sed "s:-: :3" | rev | grep -P "(?<![\w-])${p}(?![\w-])" | sed "s: :-:" | sed "s:_SBo::") )
-	installed_array=( $( $(for TARGET in $(ls /var/lib/pkgtools/packages/$p-*); do if [ -n "$(echo $TARGET |rev |cut -d/ -f1 |cut -d- -f4- |rev |grep ${p}$)" ] ; then echo $TARGET )  ))
+	installed_array=( $sbp_installed )
 	if [ "${#installed_array[@]}" -eq "0" ]; then
 		searched_status "$p" "[ ]"
  	elif [ "${#installed_array[@]}" -gt "1" ]; then
