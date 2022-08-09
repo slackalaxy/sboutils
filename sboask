@@ -365,8 +365,8 @@ helper() {
 	echo "  find|search    search for a SlackBuild by name"
 	echo "  key            search by keyword"
 	echo "  help           print this help"
-	echo "Options:"
-	echo "  -v, --verbose  display a more verbose output"
+	echo "Option:"
+	echo "  -v, --verbose  display short description of package"
 }
 
 options(){

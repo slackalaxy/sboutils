@@ -32,117 +32,85 @@ ARCH="x86_64"
 ```
 
 ## sboask
-This asks SlackBuilds.org about stuff. It displays information about a SlackBuild (including immediate list of dependencies and whether they are already installed), uses [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/) to generate a full list of dependencies, or reverse-dependencies (dependents) -- SlackBuilds that depend on the searched entry. It can also search by name or a keyword. What it **cannot** do is build and install from SBo.
+This asks SlackBuilds.org about stuff. It displays information about a SlackBuild (including immediate list of dependencies and whether they are already installed), uses [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/) to generate a full list of dependencies, or reverse-dependencies (dependents) -- SlackBuilds that depend on the searched entry. It can also show all installed packages from SBo, as well as the ones with potential updates pending. Finally, `sboask` can also search by name or a keyword. What it **cannot** do is build and install from SBo.
 ```
 bash-5.1$ sboask help
 Usage: sboask [task] SlackBuild [-v]
 Tasks:
   sync           sync with remote SlackBuilds repo
   info           display information about SlackBuild
+  installed      list installed packages
+  updates        list potential updates of packages
   isinst         show if a package is installed
   dep            show dependencies chain for a SlackBuild
   dependent      show what depends on a SlackBuild
   find|search    search for a SlackBuild by name
   key            search by keyword
   help           print this help
-Options:
-  -v, --verbose  display a more verbose output
+Option:
+  -v, --verbose  display short description of package
 ```
-As an example, let's consider **inkscape** and display information about it, using the `info` task. This outputs the following, where dependencies *lxml*, *numpy* and *potrace* I already have installed:
+As an example, let's consider **rstudio-desktop** and display information about it, using the `info` task. This outputs the following, with a list of immediate dependencies, indicating which ones are already installed, as well as dependencies with potential updates:
 ```
-bash-5.1$ sboask info inkscape
+bash-5.1$ sboask info rstudio-desktop
 
-inkscape (Open Source vector graphics editor)
-Version:  1.2
-Category: graphics
-Homepage: http://www.inkscape.org/
+Name:     rstudio-desktop
+Version:  2022.07.1+554
+Category: development
+Homepage: http://rstudio.com
 
-Inkscape is an Open Source vector graphics editor, with capabilities
-similar to Illustrator, Freehand, CorelDraw, or Xara X using the W3C
-standard Scalable Vector Graphics (SVG) file format.  Supported SVG
-features include shapes, paths, text, markers, clones, alpha blending,
-transforms, gradients, patterns, and grouping.  Inkscape also supports
-Creative Commons meta-data, node editing, layers, complex path
-operations, bitmap tracing, text-on-path, flowed text, direct XML
-editing, and more.  It imports formats such as JPEG, PNG, TIFF, and
-others and exports PNG as well as multiple vector-based formats.
+RStudio is a cross-platform IDE for the R statistical computing
+environment. It is available in desktop and server versions.
+This builds the Linux desktop version.
 
-[ ] inkscape
---- dependencies: ([i] installed, [ ] not installed)
-[ ] GraphicsMagick
-[ ] gdl
-[ ] dos2unix
-[ ] double-conversion
-[ ] libcdr
-[i] lxml
-[i] numpy
-[i] potrace
-[ ] pstoedit
-[ ] scour
+RStudio currently only supports 64-bit systems.
+
+The last supported version of RStudio for 32-bit systems is 1.1.463.
+A rstudio-desktop-legacy SlackBuild for 32-bit systems is available.
+
+Keywords: R, IDE, statistics, data, analytics
+
+[ ] rstudio-desktop
+--- status: ([i] installed, [u] update, [ ] not installed, [e] error)
+[i] R
+[u] pandoc-bin
+[i] yaml-cpp
+[ ] hunspell-en
+[ ] yarn
+[u] apache-ant
+[i] zulu-openjdk8
+[i] mathjax2
+[ ] soci
 ```
-Let's display the full list of **inkscape** dependencies by `dep`, which outputs a simple list, recursively:
+Note, that if you happen to have a package installed twice, it will be marked with an error box. Let's display the full list of **rstudio-desktop** dependencies by `dep`:
 ```
-bash-5.1$ sboask dep inkscape
---- dependencies: ([i] installed, [ ] not installed)
-[i] numpy
-[ ] dos2unix
-[i] potrace
-[ ] pstoedit
-[ ] double-conversion
-[ ] gdl
-[i] python3-soupsieve
-[ ] libcdr
-[i] python3-webencodings
-[i] python2-setuptools-scm
-[ ] scour
-[i] functools-lru-cache
-[i] python2-soupsieve
-[ ] GraphicsMagick
-[i] html5lib
-[i] BeautifulSoup4
-[i] python2-BeautifulSoup4
-[i] lxml
-[ ] inkscape
+bash-5.1$ sboask dep rstudio-desktop
+--- status: ([i] installed, [u] update, [ ] not installed, [e] error)
+[i] yaml-cpp
+[u] apache-ant
+[u] nodejs
+[i] R
+[u] pandoc-bin
+[i] mathjax2
+[ ] hunspell-en
+[ ] yarn
+[i] unixODBC
+[i] zulu-openjdk8
+[i] postgresql
+[ ] soci
+[ ] rstudio-desktop
 ```
-Let's see what depends on **libgnome**, by `dependent`. I have it installed, as well as most of the SlackBuilds dependent on it:
+Let's see what depends on **R**, by `dependent`, but this time we'll pass the `--verbose` option to also show the short description for each:
 ```
-bash-5.1$ sboask dependent libgnome
---- dependencies: ([i] installed, [ ] not installed)
-[i] libgnome
-[ ] gnome-python
-[i] libbonoboui
-[i] libgnomemm
-```
-Searching can be done either by name or a keyword. Searching for stuff with "clamav" in the name, by either `find` or `search`, will output a list, showing the category:
-```
-bash-5.1$ sboask find clamav
-network/clamav-unofficial-sigs
-system/clamav
-system/squidclamav
-```
-As a comparison, searching by keywords with `key`, will output:
-```
-bash-5.1$ sboask key clamav
-desktop/thunar-sendto-clamtk
-network/clamav-unofficial-sigs
-system/clamav
-system/clamsmtp
-system/clamtk
-system/squidclamav
-```
-To quickly check if something is installed, pass `isinst`, which will return:
-```
-bash-5.1$ sboask isinst libgnome
-[i] libgnome
-```
-The `--verbose` (`-v`) option can be used with each task and will tell `sboask` to output some more information, such as the short description from the slack-desc files:
-```
-bash-5.1$ sboask dependent libgnome -v
---- status and dependencies: ([i] installed, [ ] not installed)
-[i] libgnome (Libraries needed for GNOME)
-[i] libbonoboui (Independant CORBA interface support library)
-[i] libgnomemm (C++ wrappers for libgnome)
-[ ] gnome-python (Python bindings for GNOME)
+bash-5.1$ sboask dependent R --verbose
+--- status: ([i] installed, [u] update, [ ] not installed, [e] error)
+[i] R (language and environment for statistical computing)
+[ ] cistrome-conductGO (language and environment for statistical computing)
+[ ] rstudio-desktop (language and environment for statistical computing)
+[ ] cistrome-mdseqpos (language and environment for statistical computing)
+[i] SeqMonk (A Mapped Sequence Analysis tool)
+[ ] rpy2 (A Mapped Sequence Analysis tool)
+[ ] rstudio-desktop-legacy (A Mapped Sequence Analysis tool)
 ```
 When used with `info`, the sources name, md5sum and maintainer information will also be displayed, for example for **ghemical**:
 ```
@@ -171,6 +139,74 @@ Maintainer: Daniil Bratashov (dn2010@gmail.com)
 [ ] libghemical (computational chemistry library from ghemical)
 [ ] liboglappth (OpenGL extension library for GTK)
 [i] openbabel (Open Babel 3D Library)
+```
+Searching can be done either by name or a keyword. Searching for stuff with "clamav" in the name, by either `find` or `search`, will output a list, showing the category:
+```
+bash-5.1$ sboask find clamav
+network/clamav-unofficial-sigs
+system/clamav
+system/squidclamav
+```
+As a comparison, searching by keywords with `key`, will output:
+```
+bash-5.1$ sboask key clamav
+desktop/thunar-sendto-clamtk
+network/clamav-unofficial-sigs
+system/clamav
+system/clamsmtp
+system/clamtk
+system/squidclamav
+```
+To quickly check if something is installed, pass `isinst`, which will return:
+```
+bash-5.1$ sboask isinst libgnome
+[i] libgnome
+```
+To view all potential updates, use the `update` task. Note that this will report differences between SBo and installed packages as updates, irregardless of the actual version number.
+```
+bash-5.1$ sboask updates
+--- status: ([u] update, [e] error; local --> SBo)
+[u] DendroPy 4.5.1-1 --> 4.4.0-1
+[u] PhyML 3.3.20220408-1 --> 3.3.20200621-1
+[u] aliview 1.28-2 --> 1.28-1
+[u] apache-ant 1.9.14-1 --> 1.10.12-1
+[u] calibre-bin 6.1.0-1 --> 6.2.1-1
+[u] datamash 1.8-1 --> 1.7-1
+[u] genometools 1.6.2-1 --> 1.6.1-1
+[u] hyphy 2.5.40-1 --> 2.5.31-1
+[u] mafft 7.490-1 --> 7.475-1
+[u] meme-db-motif 12.23-1 --> 12.21-1
+[u] meme-suite 5.4.1-1 --> 5.3.3-1
+[u] ncbi-blast+ 2.13.0-1 --> 2.11.0-1
+[u] nodejs 18.6.0-1 --> 18.7.0-1
+[u] openoffice.org 4.1.7_en_US-1 --> 4.1.7-1
+[u] pandoc-bin 2.18-1 --> 2.19-1
+[u] seaview 5.0.5-1 --> 5.0.4-1
+--- status: ([u] update, [e] error; local --> SBo)
+```
+If you want to see everything that you have installed from SBo, pass the `installed` task:
+```
+bash-5.1$ sboask installed
+--- status: ([i] installed, [u] update, [e] error)
+[i] BeautifulSoup4
+[i] CAFS_divergence
+[i] CAPS_coevolution
+[i] Data2FCS
+[u] DendroPy
+[i] EMBASSY
+[i] EMBOSS
+[i] FCSalyzer
+[i] Gblocks
+[i] HMMER
+[i] IGV
+[i] MetaPhlAn2
+[i] ORBit2
+[i] PDFlib-Lite
+[u] PhyML
+[i] R
+... (snip long list)
+[i] zulu-openjdk8
+--- status: ([i] installed, [u] update, [e] error)
 ```
 ## sborun
 This runs a SlackBuild. It should be run from within the folder containing the SlackBuild and its associated files (*.info, slack-desc,...). It can download sources, check md5sum, as well as build and install the ready package. Of course, you should have the right permissions for this.
