@@ -342,15 +342,15 @@ list_differences(){
 }
 
 dependencies_title_info(){
-	echo "--- status: ([i] installed, [u] update, [ ] not installed, [e] error)"
+	echo "--- status: ([i] installed, [u] update, [ ] not installed)"
 }
 
 installed_title(){
-	echo "--- status: ([i] installed, [u] update, [e] error)"
+	echo "--- status: ([i] installed, [u] update)"
 }
 
 updates_title(){
-	echo "--- status: ([u] update, [e] error; local --> SBo)"
+	echo "--- status: ([u] update; local --> SBo)"
 }
 
 helper() {
@@ -441,7 +441,6 @@ main(){
 	if [ "$SBO_DIFF" = "yes" ]; then
 		updates_title
 		list_differences
-		updates_title
 		exit 0
 	fi
 	
