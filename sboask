@@ -77,6 +77,7 @@ check_location_exit(){
 
 slackdesc_print(){
 	handy_ruler="|-----handy-ruler------------------------------------------------------|"
+	slackdesc=""
 	slackdesc=$(sed -n "/$handy_ruler/{n;p;}" $1 | awk -F'[()]' '{print $2}' )
 }
 
@@ -281,7 +282,7 @@ list_upgrades(){
 searched_status(){
 	if [ "$SBO_VERBOSE" = "yes" ]; then
 		# call <check_location> from withing whatever uses <searched_status>
-		#check_location $1
+		check_location $2
 		if [ -f $REPO/$LOCATION/slack-desc ]; then
 			slackdesc_print $REPO/$LOCATION/slack-desc
 			echo "$1 $2 ($slackdesc)"
