@@ -162,7 +162,7 @@ To quickly check if something is installed, pass `isinst`, which will return:
 bash-5.1$ sboask isinst libgnome
 [i] libgnome
 ```
-To view all potential updates, use the `update` task. Note that this will report differences between SBo and installed packages as updates, irregardless of the actual version number.
+To view all potential updates, use the `update` task. Note that this will report differences between SBo and installed packages as updates, irregardless of the actual version number. For example, I have updated locally some of the SlackBuilds I maintain, but have not submitted them yet to SBo:
 ```
 bash-5.1$ sboask updates
 --- status: ([u] update, [e] error; local --> SBo)
