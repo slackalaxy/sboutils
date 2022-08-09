@@ -206,11 +206,26 @@ display_maintainer(){
 # 	fi
 # }
 
+show_installed_package(){
+	sbp_installed=""
+	sbo_list_all=$(find /var/log/packages/ -name "${1}-*")
+	if [ ! -z "$sbo_list_all" ]; then
+		for t in $(ls -1 /var/log/packages/${1}-*); do
+			if [ -n "$(echo $t |rev |cut -d/ -f1 |cut -d- -f4- |rev |grep ${1}$)" ]; then
+				sbp_installed+=$(echo "$t " | sed "s:/var/log/packages/::" | sed "s:_SBo::")
+			fi
+		done
+	fi
+}
+
 list_searched(){
 	local p=${1}
 	VERSION=""
 	BUILD=""
-	installed_array=( $(ls /var/lib/pkgtools/packages/ | rev | grep -w `echo "${p}" | rev` | sed "s:-: :3" | rev | grep -P "(?<![\w-])${p}(?![\w-])" | sed "s: :-:" | sed "s:_SBo::") )
+	show_installed_package $p
+	#installed_array=( $(ls /var/lib/pkgtools/packages/ | rev | grep -w `echo "${p}" | rev` | sed "s:-: :3" | rev | grep -P "(?<![\w-])${p}(?![\w-])" | sed "s: :-:" | sed "s:_SBo::") )
+	installed_array=( $sbp_installed )
+	
 	if [ "${#installed_array[@]}" -eq "0" ]; then
 		searched_status "$p" "[ ]"
  	elif [ "${#installed_array[@]}" -gt "1" ]; then
