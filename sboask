@@ -19,6 +19,7 @@
 
 SBO_SYNC="no"
 SBO_INFO="no"
+SBO_DIFF="no"
 SBO_DEPS="no"
 SBO_DEPENDENTS="no"
 SBO_FIND="no"
@@ -234,6 +235,34 @@ list_searched(){
 	fi
 }
 
+list_upgrades(){
+	local p=${1}
+	VERSION=""
+	BUILD=""
+	#installed_array=( $(ls /var/lib/pkgtools/packages/ | rev | grep -w `echo "${p}" | rev` | sed "s:-: :3" | rev | grep -P "(?<![\w-])${p}(?![\w-])" | sed "s: :-:" | sed "s:_SBo::") )
+	installed_array=( $( $(for TARGET in $(ls /var/lib/pkgtools/packages/$p-*); do if [ -n "$(echo $TARGET |rev |cut -d/ -f1 |cut -d- -f4- |rev |grep ${p}$)" ] ; then echo $TARGET )  ))
+	if [ "${#installed_array[@]}" -eq "0" ]; then
+		searched_status "$p" "[ ]"
+ 	elif [ "${#installed_array[@]}" -gt "1" ]; then
+ 		searched_status "$p" "[e]"
+	elif [ "${#installed_array[@]}" -eq "1" ]; then
+		sbp_array=( ${installed_array[0]//-/ } )
+		sbp_name=${installed_array[0]%-*-*-*}
+		sbp_build=${sbp_array[-1]}
+		sbp_version=${sbp_array[-3]}
+		#echo "[i] $sbp_name ($sbp_version) <$sbp_build>"
+		check_location $sbp_name
+		if [[ -d "$REPO/$LOCATION" ]]; then
+ 			source <(grep 'VERSION=${VERSION:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+ 			source <(grep 'BUILD=${BUILD:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+			if [ "$VERSION" != "$sbp_version" ] || [ "$BUILD" != "$sbp_build" ]; then
+				searched_status "$sbp_name" "[u]"
+				#UPDATE_${sbp_name}="yes"
+			fi
+		fi
+	fi
+}
+
 searched_status(){
 	if [ "$SBO_VERBOSE" = "yes" ]; then
 		# call <check_location> from withing whatever uses <searched_status>
@@ -285,31 +314,14 @@ list_installed(){
 	done
 }
 
-# list_installed(){
-# 	for i in /var/lib/pkgtools/packages/* ; do
-# 		VERSION=""
-# 		BUILD=""
-# 		if echo $i | grep -q "_SBo" ; then
-#  			sbp=$( basename "$i" )
-#  			sbp_notag=$( echo $sbp | sed 's|_SBo||g' )
-#  			sbp_name=${sbp%-*-*-*}
-#  			sbp_array=( ${sbp_notag//-/ } )
-#  			sbp_build=${sbp_array[-1]}
-#  			#sbp_arch=${sbp_array[-2]}
-#  			sbp_version=${sbp_array[-3]}
-#  			check_location $sbp_name
-#  			if [[ -d "$REPO/$LOCATION" ]]; then
-#  				source <(grep 'VERSION=${VERSION:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
-#  				source <(grep 'BUILD=${BUILD:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
-# 				if [ "$VERSION" = "$sbp_version" ] && [ "$BUILD" = "$sbp_build" ]; then
-# 					searched_status "$sbp_name" "[i]"
-# 				else
-# 					searched_status "$sbp_name" "[u]"
-# 				fi
-# 			fi
-# 		fi
-# 	done
-# }
+list_differences(){
+	for i in /var/lib/pkgtools/packages/* ; do
+		if echo $i | grep -q "_SBo" ; then
+			f=$(basename "${i%-*-*-*}")
+			list_upgrades $f
+		fi
+	done
+}
 
 dependencies_title_info(){
 	echo "--- status and dependencies: ([i] installed, [u] upgradable, [ ] not installed, [e] error)"
@@ -409,6 +421,11 @@ main(){
 		installed_title
 		list_installed
 		installed_title
+		exit 0
+	fi
+	
+	if [ "$SBO_DIFF" = "yes" ]; then
+		list_differences
 		exit 0
 	fi
 	
