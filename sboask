@@ -81,7 +81,6 @@ slackdesc_print(){
 	slackdesc=$(sed -n "/$handy_ruler/{n;p;}" $1 | awk -F'[()]' '{print $2}' )
 }
 
-
 search_entry(){
 	
 	local -n SEARCH_ARRAY=$1
@@ -175,37 +174,6 @@ display_sources(){
 display_maintainer(){
 	echo -e "Maintainer: $MAINTAINER ($EMAIL)\n"
 }
-
-# find_searched(){
-# 	local p=${1} # searched entry, find below all packages with (partially) matching name, that belong to SBo: have the _SBo tag
-# 	installed_array=( $(find /var/lib/pkgtools/packages/ -name "${1}-*" | sed "s:/var/lib/pkgtools/packages/::" | grep "_SBo") )
-# 	pkg=""
-# 	if (( ${#installed_array[@]} )); then
-# 		for i in ${installed_array[@]}; do
-# 			sbp_array=( ${i//-/ } )
-# 			last_element=${#sbp_array[@]}
-# 			#limit=$(echo "$last_element - 3" | bc)
-# 			#a=0
-# 			#while [ $a -lt $limit ]; do
-# 			#	echo ${arr[$i]}
-# 			#	let i++
-# 			#done
-# 			#pkg+=$(echo "`basename ${i%-*-*-*}` ")
-# 		done
-# 		pkg_array=( $pkg )
-# 		 # how many times does our search appear in the array? 0 -- not found, 1 -- found, >1 -- error
-# 		pkg_occur=$(grep -o ${p} <<< ${pkg_array[*]} | wc -l)
-# 		if [ "$pkg_occur" = "0" ]; then
-# 			searched_status "$p" "[ ]"
-# 		elif [ "$pkg_occur" = "1" ]; then
-# 			searched_status "$p" "[i]"
-# 		elif [ "$pkg_occur" -gt "1" ]; then
-# 			searched_status "$p" "[e]"
-# 		fi
-# 	else
-# 		searched_status "$p" "[ ]"
-# 	fi
-# }
 
 show_installed_package(){
 	sbp_installed=""
