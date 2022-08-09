@@ -227,9 +227,9 @@ list_searched(){
 	installed_array=( $sbp_installed )
 	
 	if [ "${#installed_array[@]}" -eq "0" ]; then
-		searched_status "$p" "[ ]"
+		searched_status "[ ]" "$p"
  	elif [ "${#installed_array[@]}" -gt "1" ]; then
- 		searched_status "$p" "[e]"
+ 		searched_status "[e]" "$p"
 	elif [ "${#installed_array[@]}" -eq "1" ]; then
 		sbp_array=( ${installed_array[0]//-/ } )
 		sbp_name=${installed_array[0]%-*-*-*}
@@ -241,9 +241,9 @@ list_searched(){
  			source <(grep 'VERSION=${VERSION:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
  			source <(grep 'BUILD=${BUILD:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
 			if [ "$VERSION" = "$sbp_version" ] && [ "$BUILD" = "$sbp_build" ]; then
-				searched_status "$sbp_name" "[i]"
+				searched_status "[i]" "$sbp_name"
 			else
-				searched_status "$sbp_name" "[u]"
+				searched_status "[u]" "$sbp_name"
 				# UPDATE_${sbp_name}="yes"
 			fi
 		fi
@@ -258,9 +258,9 @@ list_upgrades(){
 	#installed_array=( $(ls /var/lib/pkgtools/packages/ | rev | grep -w `echo "${p}" | rev` | sed "s:-: :3" | rev | grep -P "(?<![\w-])${p}(?![\w-])" | sed "s: :-:" | sed "s:_SBo::") )
 	installed_array=( $sbp_installed )
 	if [ "${#installed_array[@]}" -eq "0" ]; then
-		searched_status "$p" "[ ]"
+		searched_status "[ ]" "$p"
  	elif [ "${#installed_array[@]}" -gt "1" ]; then
- 		searched_status "$p" "[e]"
+ 		searched_status "[e]" "$p"
 	elif [ "${#installed_array[@]}" -eq "1" ]; then
 		sbp_array=( ${installed_array[0]//-/ } )
 		sbp_name=${installed_array[0]%-*-*-*}
@@ -272,7 +272,7 @@ list_upgrades(){
  			source <(grep 'VERSION=${VERSION:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
  			source <(grep 'BUILD=${BUILD:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
 			if [ "$VERSION" != "$sbp_version" ] || [ "$BUILD" != "$sbp_build" ]; then
-				searched_status "$sbp_name" "[u]"
+				searched_status "[u]" "$sbp_name" "$sbp_version" "$sbp_build" "$VERSION" "$BUILD"
 				#UPDATE_${sbp_name}="yes"
 			fi
 		fi
@@ -285,12 +285,14 @@ searched_status(){
 		#check_location $1
 		if [ -f $REPO/$LOCATION/slack-desc ]; then
 			slackdesc_print $REPO/$LOCATION/slack-desc
-			echo "$2 $1 ($slackdesc)"
+			echo "$1 $2 ($slackdesc)"
 		else
-			echo "$2 $1"
+			echo "$1 $2"
 		fi
+	elif [ "$SBO_DIFF" = "yes" ]; then
+		echo "$1 $2 $3-$4 --> $5-$6"
 	else
-		echo "$2 $1"
+		echo "$1 $2"
 	fi
 }
 
