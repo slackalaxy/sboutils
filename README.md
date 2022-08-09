@@ -123,33 +123,43 @@ bash-5.1$ sboask dependent R --verbose
 [ ] rpy2 (R in Python)
 [ ] rstudio-desktop (R Statistical IDE)
 ```
-When used with `info`, the sources name, md5sum and maintainer information will also be displayed, for example for **ghemical**:
+When used with `info`, the sources, md5sum and maintainer information will also be displayed:
 ```
-bash-5.1$ sboask info ghemical -v
+bash-5.1$ sboask info rstudio-desktop --verbose
 
-Name:     ghemical
-Version:  3.0.0
-Category: academic
-Homepage: http://www.bioinformatics.org/ghemical/
+Name:     rstudio-desktop
+Version:  2022.07.1+554
+Category: development
+Homepage: http://rstudio.com
 
-Ghemical is an easy-to-use molecular editor with OpenGL visualisation
-features and modeling package with all-atoms molecular mechanics,
-reduced protein models and links to many common quantum chemistry
-codes.
+RStudio is a cross-platform IDE for the R statistical computing
+environment. It is available in desktop and server versions.
+This builds the Linux desktop version.
 
-Keywords: ghemical, MM, QM, computational chemistry
+RStudio currently only supports 64-bit systems.
 
---- sources (md5sum | filename):
-becf98626f0eba73f7f042bc92aa60ac | ghemical-3.0.0.tar.gz
+The last supported version of RStudio for 32-bit systems is 1.1.463.
+A rstudio-desktop-legacy SlackBuild for 32-bit systems is available.
 
-Maintainer: Daniil Bratashov (dn2010@gmail.com)
+Keywords: R, IDE, statistics, data, analytics
 
-[ ] ghemical (Computational chemistry package)
---- status and dependencies: ([i] installed, [ ] not installed)
-[i] gtkglext (an OpenGL extension to GTK)
-[ ] libghemical (computational chemistry library from ghemical)
-[ ] liboglappth (OpenGL extension library for GTK)
-[i] openbabel (Open Babel 3D Library)
+--- sources 64bit (md5sum | filename):
+e57b59a213f2be140d26b122c1ea24bc | rstudio-2022.07.1-554.tar.gz
+a46e501a201be6c3c05c0f770c375372 | node-v16.14.0-linux-x64.tar.gz
+
+Maintainer: Isaac Yu (isaacyu1@isaacyu1.com)
+
+[ ] rstudio-desktop (R Statistical IDE)
+--- status: ([i] installed, [u] update, [ ] not installed, [e] error)
+[i] R (language and environment for statistical computing)
+[u] pandoc-bin (a universal document converter)
+[i] yaml-cpp (YAML parser)
+[ ] hunspell-en (English hunspell dictionaries)
+[ ] yarn (Secure Dependency Management)
+[u] apache-ant (Java-based build tool)
+[i] zulu-openjdk8 (Open Implementation of JDK)
+[i] mathjax2 (Beautiful math in all browsers)
+[ ] soci (Database Access Library for C++)
 ```
 Searching can be done either by name or a keyword. Searching for stuff with "clamav" in the name, by either `find` or `search`, will output a list, showing the category:
 ```
