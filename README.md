@@ -5,7 +5,8 @@ Tools to manage SlackBuilds: `sboask` (shows information from [SlackBuilds.org](
 This is still a work in progress, as I am testing the tools at the moment. I will appreaciate any feedback either by email: **slackalaxy ат gmail.com**, or on irc.libera.chat: **ppetrov^**
 
 ## Requirements
-* [hoorex ](https://slackbuilds.org/repository/15.0/misc/hoorex/)  (Dependency Calculator)
+* [hoorex ](https://slackbuilds.org/repository/15.0/misc/hoorex/)  (Dependency Calculator), used by `sboask`
+* [sbo-maintainer-tools](https://slackbuilds.org/repository/15.0/system/sbo-maintainer-tools/), `sbopkglint` used by `sborun`
 * configuration file should go here: `/etc/sboutils.conf`
 * [template](./templates/) files should be in: `/usr/share/sboutils/templates`. These are the ones at [SBo](https://slackbuilds.org/templates/), I only added a `template.desktop` file.
 
