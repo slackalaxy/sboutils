@@ -25,6 +25,7 @@ SBO_UPGRADE="no"
 SBO_REINSTALL="no"
 SBO_DOWNLOAD="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
+SBO_PKGLINT="no"
 
 is_input_empty(){
 	if [ -z "$1" ]; then
@@ -190,6 +191,10 @@ check_md5sum_source_title(){
 build(){
 	set -e
 	bash ./$PRGNAM.SlackBuild
+	
+	if [ "$SBO_PKGLINT" = "yes" ]; then
+		sbopkglint
+	fi
 }
 
 install_warn(){
@@ -232,6 +237,7 @@ helper() {
 	echo "  -ri,  --reinstall         reinstall package"
 	echo "  -d,   --download          download and check sources"
 	echo "  -nc,  --no-certificate    do not check download certificate"
+	echo "  -li,  --sbopkglint        checks produced package"
 	echo "  -h,   --help              print this help"
 }
 
@@ -255,6 +261,9 @@ options(){
 			;;
 			-nc|--no-certificate)
 				SBO_DOWNLOAD_NO_CERTIFICATE="yes"
+			;;
+			-li|--sbopkglint)
+				SBO_PKGLINT="yes"
 			;;
 			-h|--help|help)
 				helper
