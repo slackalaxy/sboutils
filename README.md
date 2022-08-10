@@ -6,7 +6,7 @@ This is still a work in progress, as I am testing the tools at the moment. I wil
 
 ## Requirements
 * [hoorex ](https://slackbuilds.org/repository/15.0/misc/hoorex/)  (Dependency Calculator), used by `sboask`
-* [sbo-maintainer-tools](https://slackbuilds.org/repository/15.0/system/sbo-maintainer-tools/), `sbopkglint` used by `sborun`
+* [sbo-maintainer-tools](https://slackbuilds.org/repository/15.0/system/sbo-maintainer-tools/) (sbolint and sbopkglint for SBo maintainers), `sbopkglint` used by `sborun`
 * configuration file should go here: `/etc/sboutils.conf`
 * [template](./templates/) files should be in: `/usr/share/sboutils/templates`. These are the ones at [SBo](https://slackbuilds.org/templates/), I only added a `template.desktop` file.
 
@@ -241,6 +241,7 @@ Options:
   -ri,  --reinstall         reinstall package
   -d,   --download          download and check sources
   -nc,  --no-certificate    do not check download certificate
+  -li,  --sbopkglint        checks produced package
   -h,   --help              print this help
 ```
 To build a package from a SlackBuild, run `sborun -b`, however, it will expect to find the sources in the folder where your SlackBuild is. To download them and then proceed with build, run it as: `sborun -d`. By default, the created package is not installed, so to do this, pass the `-i` option. This will first call `installpkg --warn`, which checks if any files already present will be overwritten and then proceeds with instalation. Therefore, if you want to automatically download source, build and install the created package, run:
