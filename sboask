@@ -27,6 +27,7 @@ SBO_KEY="no"
 SBO_ISINST="no"
 SBO_VERBOSE="no"
 SBO_INSTALLED="no"
+SBO_FOOTPRINT="no"
 
 check_settings() {
 	if [ ! "$RELEASE" ]; then
@@ -192,7 +193,6 @@ list_searched(){
 	VERSION=""
 	BUILD=""
 	show_installed_package $p
-	#installed_array=( $(ls /var/lib/pkgtools/packages/ | rev | grep -w `echo "${p}" | rev` | sed "s:-: :3" | rev | grep -P "(?<![\w-])${p}(?![\w-])" | sed "s: :-:" | sed "s:_SBo::") )
 	installed_array=( $sbp_installed )
 	
 	if [ "${#installed_array[@]}" -eq "0" ]; then
@@ -309,6 +309,17 @@ list_differences(){
 	done
 }
 
+show_footprint(){
+	local p=${1}
+	show_installed_package $p
+	if [ ! -z "$sbp_installed" ]; then
+		installed_array=( $sbp_installed )
+		sed -n '/FILE LIST/,$p' /var/log/packages/${installed_array}_SBo
+	else
+		echo "Package $1 not installed."
+	fi
+}
+
 dependencies_title_info(){
 	echo "--- status: ([i] installed, [u] update, [ ] not installed)"
 }
@@ -325,7 +336,7 @@ helper() {
 	echo "Usage: `basename $0` [task] SlackBuild [-v]"
 	echo "Tasks:"
 	echo "  sync           sync with remote SlackBuilds repo"
-	echo "  info           display information about SlackBuild"
+	echo "  info           display information about a SlackBuild"
 	echo "  installed      list installed packages"
 	echo "  updates        list potential updates of packages"
 	echo "  isinst         show if a package is installed"
@@ -333,6 +344,7 @@ helper() {
 	echo "  dependent      show what depends on a SlackBuild"
 	echo "  find|search    search for a SlackBuild by name"
 	echo "  key            search by keyword"
+	echo "  footprint      show footprint of a package"
 	echo "  help           print this help"
 	echo "Option:"
 	echo "  -v, --verbose  display short description of package"
@@ -366,6 +378,9 @@ options(){
 		;;
 		key)
 			SBO_KEY="yes"
+		;;
+		footprint)
+			SBO_FOOTPRINT="yes"
 		;;
 		help|-h|--help)
 			helper
@@ -430,6 +445,11 @@ main(){
 	
 	check_location "$2"
 	check_location_exit "$2"
+	
+	if [ "$SBO_FOOTPRINT" = "yes" ]; then
+		show_footprint "$2"
+		exit 0
+	fi
 	
 	# $2 refers to position, e.g.: sboask info $2 (aka slackbuild),
 	# but comes first after the function, so it is referred as $1
