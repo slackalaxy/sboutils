@@ -38,7 +38,7 @@ bash-5.1$ sboask help
 Usage: sboask [task] SlackBuild [-v]
 Tasks:
   sync           sync with remote SlackBuilds repo
-  info           display information about SlackBuild
+  info           display information about a SlackBuild
   installed      list installed packages
   updates        list potential updates of packages
   isinst         show if a package is installed
@@ -46,6 +46,7 @@ Tasks:
   dependent      show what depends on a SlackBuild
   find|search    search for a SlackBuild by name
   key            search by keyword
+  footprint      show footprint of a package
   help           print this help
 Option:
   -v, --verbose  display short description of package
@@ -228,6 +229,20 @@ bash-5.1$ sboask installed
 ... (snip long list)
 [i] zulu-openjdk8
 --- status: ([i] installed, [u] update)
+```
+Finally, to list files of a package, use the `footrpint` task:
+```
+bash-5.1$ sboask footprint seqkit
+FILE LIST:
+./
+install/
+install/slack-desc
+usr/
+usr/bin/
+usr/bin/seqkit
+usr/doc/
+usr/doc/seqkit-2.2.0/
+usr/doc/seqkit-2.2.0/seqkit.SlackBuild
 ```
 ## sborun
 This runs a SlackBuild. It should be run from within the folder containing the SlackBuild and its associated files (*.info, slack-desc,...). It can download sources, check md5sum, as well as build and install the ready package. Of course, you should have the right permissions for this.
