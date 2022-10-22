@@ -1,4 +1,4 @@
-# sboutils
+# SBoUtils
 
 Tools to manage SlackBuilds: `sboask` (shows information from [SlackBuilds.org](https://slackbuilds.org/)), `sborun` (runs a SlackBuild automatically) and `sboset` (helps with SlackBuild templates). They are written in BASH and are heavily inspired by the pkgutils and prt-get outstanding package management tools for CRUX. 
 

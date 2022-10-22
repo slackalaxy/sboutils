@@ -271,11 +271,12 @@ display_requires(){
 	done
 }
 
+# we do not need hoorex anymore, but keep the function name...
 hoorex_array(){
 	if [ "$2" = "DEPS" ]; then
-		hoorex=$(hoorex -r "$1")
+		hoorex=$(grep "NAME: $1" $SYNC/$RELEASE/SLACKBUILDS.TXT -A 9 | grep "REQUIRES:" | sed "s|SLACKBUILD REQUIRES: ||g")
 	else
-		hoorex=$(hoorex "$1")
+		hoorex=$(grep "$1" $SYNC/$RELEASE/SLACKBUILDS.TXT -B 8 | grep "NAME:" | sed "s|SLACKBUILD NAME: ||g")
 	fi
 		
 	if [ -z "$hoorex" ]; then
