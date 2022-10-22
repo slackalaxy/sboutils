@@ -273,10 +273,15 @@ display_requires(){
 
 # we do not need hoorex anymore, but keep the function name...
 hoorex_array(){
+	hoorex=""
 	if [ "$2" = "DEPS" ]; then
-		hoorex=$(grep "NAME: $1" $SYNC/$RELEASE/SLACKBUILDS.TXT -A 9 | grep "REQUIRES:" | sed "s|SLACKBUILD REQUIRES: ||g")
+		# grep 9 rows after
+		hoorex="$1 "
+		hoorex+=$(grep "NAME: $1" $SYNC/$RELEASE/SLACKBUILDS.TXT -A 9 | grep "REQUIRES:" | sed "s|SLACKBUILD REQUIRES: ||g")
 	else
-		hoorex=$(grep "$1" $SYNC/$RELEASE/SLACKBUILDS.TXT -B 8 | grep "NAME:" | sed "s|SLACKBUILD NAME: ||g")
+		# grep 8 rows before
+		hoorex="$1 "
+		hoorex+=$(grep "$1" $SYNC/$RELEASE/SLACKBUILDS.TXT -B 8 | grep "NAME:" | grep -wv "NAME: $1" | sed "s|SLACKBUILD NAME: ||g")
 	fi
 		
 	if [ -z "$hoorex" ]; then
