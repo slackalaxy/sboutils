@@ -341,8 +341,8 @@ helper() {
 	echo "  installed      list installed packages"
 	echo "  updates        list potential updates of packages"
 	echo "  isinst         show if a package is installed"
-	echo "  dep            show dependencies chain for a SlackBuild"
-	echo "  dependent      show what depends on a SlackBuild"
+	echo "  dep|depends    show dependencies chain for a SlackBuild"
+	echo "  dependee       show what depends on a SlackBuild"
 	echo "  find|search    search for a SlackBuild by name"
 	echo "  key            search by keyword"
 	echo "  footprint      show footprint of a package"
@@ -368,10 +368,10 @@ options(){
 		isinst)
 			SBO_ISINST="yes"
 		;;
-		dep)
+		dep|depends)
 			SBO_DEPS="yes"
 		;;
-		dependent)
+		dependee)
 			SBO_DEPENDENTS="yes"
 		;;
 		find|search)

@@ -5,7 +5,6 @@ Tools to manage SlackBuilds: `sboask` (shows information from [SlackBuilds.org](
 This is still a work in progress, as I am testing the tools at the moment. I will appreaciate any feedback either by email: **slackalaxy ат gmail.com**, or on irc.libera.chat: **ppetrov^**
 
 ## Requirements
-* [hoorex ](https://slackbuilds.org/repository/15.0/misc/hoorex/)  (Dependency Calculator), used by `sboask`
 * [sbo-maintainer-tools](https://slackbuilds.org/repository/15.0/system/sbo-maintainer-tools/) (sbolint and sbopkglint for SBo maintainers), `sbopkglint` used by `sborun`
 * configuration file should go here: `/etc/sboutils.conf`
 * [template](./templates/) files should be in: `/usr/share/sboutils/templates`. These are the ones at [SBo](https://slackbuilds.org/templates/), I only added a `template.desktop` file.
@@ -32,7 +31,7 @@ PKGS="/tmp"
 ARCH="x86_64"
 ```
 ## sboask
-This asks SlackBuilds.org about stuff. It displays information about a SlackBuild (including immediate list of dependencies and whether they are already installed), uses [hoorex](https://slackbuilds.org/repository/15.0/misc/hoorex/) to generate a full list of dependencies, or reverse-dependencies (dependents) -- SlackBuilds that depend on the searched entry. It can also show all installed packages from SBo, as well as the ones with potential updates pending. Finally, `sboask` can also search by name or a keyword. What it **cannot** do is build and install from SBo.
+This asks SlackBuilds.org about stuff. It displays information about a SlackBuild (including immediate list of dependencies and whether they are already installed). It can also show all installed packages from SBo, as well as the ones with potential updates pending. Finally, `sboask` can also search by name or a keyword. What it **cannot** do is build and install from SBo.
 ```
 bash-5.1$ sboask help
 Usage: sboask [task] SlackBuild [-v]
@@ -42,8 +41,8 @@ Tasks:
   installed      list installed packages
   updates        list potential updates of packages
   isinst         show if a package is installed
-  dep            show dependencies chain for a SlackBuild
-  dependent      show what depends on a SlackBuild
+  dep|depends    show dependencies chain for a SlackBuild
+  dependee       show what depends on a SlackBuild
   find|search    search for a SlackBuild by name
   key            search by keyword
   footprint      show footprint of a package
