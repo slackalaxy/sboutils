@@ -326,27 +326,37 @@ display_requires(){
 # we do not need hoorex anymore, but keep the function name...
 hoorex_array(){
 	hoorex=""
+	recursive_deps=""
+	recursive_hoorex=""
+	# show dependencies recursively, but no repetition
 	if [ "$2" = "DEPS" ]; then
-		# grep 9 rows after
-		hoorex=$(grep -w "NAME: $1" $SYNC/$RELEASE/SLACKBUILDS.TXT -A 9 | grep "REQUIRES:" | sed "s|SLACKBUILD REQUIRES: ||g")
-		hoorex+=" $1"
+		# grep 9 rows after, make sure we grep the name to the end of line, because sometimes a following hyphen (-) may greps something more
+		hoorex=( $(grep -w "NAME: ${1}$" $SYNC/$RELEASE/SLACKBUILDS.TXT -A 9 | grep "REQUIRES:" | sed "s|SLACKBUILD REQUIRES: ||g") )
 
+		for c in ${hoorex[@]}; do
+			c_deps=$(grep -w "NAME: ${c}$" $SYNC/$RELEASE/SLACKBUILDS.TXT -A 9 | grep "REQUIRES:" | sed "s|SLACKBUILD REQUIRES: ||g")
+			c_deps+=" $c"
+			recursive_hoorex+=" $c_deps"
+		done
+		uniq_hoorex=$(echo "${recursive_hoorex[@]}" | tr ' ' '\n' | uniq -u)
+		uniq_hoorex+=" $1"
 	else
 		# grep 8 rows before
-		hoorex="$1 "
+		uniq_hoorex="$1 "
 		# https://phoenixnap.com/kb/grep-regex
-		hoorex+=$(grep -w "REQUIRES: *.* $1" -B 8 $SYNC/$RELEASE/SLACKBUILDS.TXT | grep "SLACKBUILD NAME: " | cut -c18-)
+		uniq_hoorex+=$(grep -w "REQUIRES: *.* $1" -B 8 $SYNC/$RELEASE/SLACKBUILDS.TXT | grep "SLACKBUILD NAME: " | cut -c18-)
 	fi
 		
-	if [ -z "$hoorex" ]; then
+	if [ -z "$uniq_hoorex" ]; then
 		echo "$1 not found at SlackBuilds.org"
 		exit 1
 	fi
 }
 
 hoorex_output(){
-	hoorex_array=( $hoorex )
-	for h in ${hoorex_array[@]}; do
+	# deps_array=( $hoorex )
+	deps_array=( $uniq_hoorex )
+	for h in ${deps_array[@]}; do
 		#list_searched $h
 		list_searched_updates $h
 	done
