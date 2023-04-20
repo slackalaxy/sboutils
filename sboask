@@ -61,7 +61,8 @@ is_input_empty(){
 
 sync_with_repo(){
 	check_folder $SYNC
-	rsync -av $URL $SYNC 
+	rsync -av $URL $SYNC
+	hoorex -s $SYNC/$RELEASE
 }
 
 check_location(){
