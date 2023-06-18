@@ -245,7 +245,7 @@ update_md5sum_source(){
 }
 
 update_md5sum_source_title(){
-	echo "--- update md5sum ([m] match, [u] update, [ ] source missing)"
+	echo "--- update md5sum ([m] match, [u] updated)"
 }
 
 clean_source(){
