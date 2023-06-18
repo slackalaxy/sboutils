@@ -66,6 +66,12 @@ sync_with_repo(){
 	hoorex -s $SYNC/$RELEASE
 }
 
+build_places(){
+	check_folder $SBOASK_BUILD_DIR
+	check_folder $SBOASK_PACKAGES_DIR
+	check_folder $SBOASK_SOURCES_DIR
+}
+
 check_location(){
 	CATEGORY=$(grep "/${1}$" $REPO/SLACKBUILDS.TXT | grep "SLACKBUILD LOCATION" | awk -F'[//]' '{print $2}')
 	LOCATION=$CATEGORY/$1
