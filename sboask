@@ -322,11 +322,11 @@ show_footprint(){
 }
 
 dependencies_title_info(){
-	echo "--- status: ([i] installed, [u] update, [ ] not installed)"
+	echo "--- status: ([i] installed, [u] update available)"
 }
 
 installed_title(){
-	echo "--- status: ([i] installed, [u] update)"
+	echo "--- status: ([i] installed, [u] update available)"
 }
 
 updates_title(){
