@@ -182,10 +182,10 @@ report_md5sum_source(){
 }
 
 download_source_title(){
-	echo "--- download ([d] already downloaded, [o] overwrite downloaded, [ ] missing)"
+	echo "--- download ([d] already downloaded, [o] overwrite downloaded)"
 }
 check_md5sum_source_title(){
-	echo "--- check md5sum ([m] match, [e] error (mismatch), [ ] source missing)"
+	echo "--- check md5sum ([m] match, [e] error (mismatch))"
 }
 
 build(){
