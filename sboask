@@ -15,7 +15,9 @@
 # GNU General Public License for more details.
 #
 
+# source the config file and sborun (dir will change)
 . /etc/sboutils.conf
+. /usr/local/bin/sborun
 
 SBO_SYNC="no"
 SBO_INFO="no"

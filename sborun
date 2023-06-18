@@ -138,10 +138,12 @@ download_source(){
 			echo "[d] $NAME_d"
 		elif [ -f "$NAME_d" ] && [ "$SBO_FORCE" = "yes" ]; then
 			echo "[o] $NAME_d"
-			wget $cert -c "${local_array_download[$d]}"
+			wget $cert -c "${local_array_download[$d]} -P $SBOASK_SOURCES_DIR"
+			ln -s $SBOASK_SOURCES_DIR/$NAME_d .
 		else
 			echo "[ ] $NAME_d"
-			wget $cert -c "${local_array_download[$d]}"
+			wget $cert -c "${local_array_download[$d]} -P $SBOASK_SOURCES_DIR"
+			ln -s $SBOASK_SOURCES_DIR/$NAME_d .
 		fi
 	done
 }
@@ -160,7 +162,7 @@ check_md5sum_source(){
 			echo "[ ] $NAME_d"
 			md5summary+="missing "
 		elif [ -f "$NAME_d" ]; then
-			MD5SUM_d=$(md5sum "$NAME_d" | awk '{print $1}')
+			MD5SUM_d=$(md5sum "$SBOASK_SOURCES_DIR/$NAME_d" | awk '{print $1}')
 			if [ "$MD5SUM_d" = "${local_array_md5sum[$d]}" ]; then
 				#echo "[m] $MD5SUM_d $NAME_d"
 				echo "[m] $NAME_d"
@@ -195,6 +197,9 @@ build(){
 	if [ "$SBO_PKGLINT" = "yes" ]; then
 		sbopkglint
 	fi
+
+	# cleanup symlinks to download
+	find . -type l -exec rm {} +
 }
 
 install_warn(){
