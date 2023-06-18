@@ -189,6 +189,23 @@ show_installed_package(){
 	fi
 }
 
+searched_status(){
+	if [ "$SBO_VERBOSE" = "yes" ]; then
+		# call <check_location> from withing whatever uses <searched_status>
+		check_location $2
+		if [ -f $REPO/$LOCATION/slack-desc ]; then
+			slackdesc_print $REPO/$LOCATION/slack-desc
+			echo "$1 $2 ($slackdesc)"
+		else
+			echo "$1 $2"
+		fi
+	elif [ "$SBO_DIFF" = "yes" ]; then
+		echo "$1 $2 $3-$4 --> $5-$6"
+	else
+		echo "$1 $2"
+	fi
+}
+
 list_searched(){
 	local p=${1}
 	VERSION=""
@@ -245,23 +262,6 @@ list_upgrades(){
 				#UPDATE_${sbp_name}="yes"
 			fi
 		fi
-	fi
-}
-
-searched_status(){
-	if [ "$SBO_VERBOSE" = "yes" ]; then
-		# call <check_location> from withing whatever uses <searched_status>
-		check_location $2
-		if [ -f $REPO/$LOCATION/slack-desc ]; then
-			slackdesc_print $REPO/$LOCATION/slack-desc
-			echo "$1 $2 ($slackdesc)"
-		else
-			echo "$1 $2"
-		fi
-	elif [ "$SBO_DIFF" = "yes" ]; then
-		echo "$1 $2 $3-$4 --> $5-$6"
-	else
-		echo "$1 $2"
 	fi
 }
 
