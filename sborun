@@ -25,6 +25,7 @@ SBO_UPGRADE="no"
 SBO_REINSTALL="no"
 SBO_DOWNLOAD="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
+SBO_REDOWNLOAD="no"
 SBO_PKGLINT="no"
 
 is_input_empty(){
@@ -125,6 +126,7 @@ load_sources(){
 	fi
 }
 
+# TODO implement a FORCE_DOWNLOAD option
 download_source(){
 	# some sources (e.g. geneconv) need this to be downloaded
 	if [ $SBO_DOWNLOAD_NO_CERTIFICATE = "yes" ]; then
@@ -134,16 +136,18 @@ download_source(){
 	local -n local_array_download=$1
 	for (( d=0; d<${#local_array_download[@]}; d++ )); do
 		NAME_d=$(basename ${local_array_download[$d]} | sed 's:%20:\ :g')
-		if [ -f "$NAME_d" ] && [ "$SBO_FORCE" = "no" ]; then
+		if [ -f "${SBOASK_SOURCES_DIR}/$NAME_d" ] && [ "$SBO_REDOWNLOAD" = "no" ]; then
 			echo "[d] $NAME_d"
-		elif [ -f "$NAME_d" ] && [ "$SBO_FORCE" = "yes" ]; then
+		elif [ -f "${SBOASK_SOURCES_DIR}/$NAME_d" ] && [ "$SBO_REDOWNLOAD" = "yes" ]; then
 			echo "[o] $NAME_d"
-			wget $cert -c "${local_array_download[$d]} -P $SBOASK_SOURCES_DIR"
-			ln -s $SBOASK_SOURCES_DIR/$NAME_d .
-		else
+			wget $cert -c "${local_array_download[$d]}" -P ${SBOASK_SOURCES_DIR}
+			#ln -s $SBOASK_SOURCES_DIR/$NAME_d .
+		elif [ ! -f "${SBOASK_SOURCES_DIR}/$NAME_d" ]; then
 			echo "[ ] $NAME_d"
-			wget $cert -c "${local_array_download[$d]} -P $SBOASK_SOURCES_DIR"
-			ln -s $SBOASK_SOURCES_DIR/$NAME_d .
+			wget $cert -c "${local_array_download[$d]}" -P ${SBOASK_SOURCES_DIR}
+			#ln -s $SBOASK_SOURCES_DIR/$NAME_d .
+		else
+			echo "${SBOASK_SOURCES_DIR}/$NAME_d"
 		fi
 	done
 }
@@ -156,12 +160,12 @@ check_md5sum_source(){
 	# determine position in array
 	for (( d=0; d<${#local_array_download[@]}; d++ )); do
 		NAME_d=$(basename ${local_array_download[$d]} | sed 's:%20:\ :g')
-		if [ ! -f "$NAME_d" ]; then
+		if [ ! -f "${SBOASK_SOURCES_DIR}/$NAME_d" ]; then
 			# echo "[ ] ${local_array_download[$d]}"
 			#exit 0
 			echo "[ ] $NAME_d"
 			md5summary+="missing "
-		elif [ -f "$NAME_d" ]; then
+		elif [ -f "${SBOASK_SOURCES_DIR}/$NAME_d" ]; then
 			MD5SUM_d=$(md5sum "$SBOASK_SOURCES_DIR/$NAME_d" | awk '{print $1}')
 			if [ "$MD5SUM_d" = "${local_array_md5sum[$d]}" ]; then
 				#echo "[m] $MD5SUM_d $NAME_d"
@@ -191,6 +195,7 @@ check_md5sum_source_title(){
 }
 
 build(){
+	ln -s $SBOASK_SOURCES_DIR/$NAME_d .
 	set -e
 	bash ./$PRGNAM.SlackBuild
 	

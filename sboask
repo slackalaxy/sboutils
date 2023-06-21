@@ -17,7 +17,6 @@
 
 # source the config file and sborun (dir will change)
 . /etc/sboutils.conf
-. /usr/local/bin/sborun
 
 SBO_SYNC="no"
 SBO_INFO="no"
@@ -274,6 +273,37 @@ list_upgrades(){
 	fi
 }
 
+list_missing_dependencies(){
+	local p=${1}
+	VERSION=""
+	BUILD=""
+	show_installed_package $p
+	installed_array=( $sbp_installed )
+	
+	if [ "${#installed_array[@]}" -eq "0" ]; then
+		searched_status "[ ]" "$p"
+ 	elif [ "${#installed_array[@]}" -gt "1" ]; then
+ 		searched_status "[e]" "$p"
+	elif [ "${#installed_array[@]}" -eq "1" ]; then
+		sbp_array=( ${installed_array[0]//-/ } )
+		sbp_name=${installed_array[0]%-*-*-*}
+		sbp_build=${sbp_array[-1]}
+		sbp_version=${sbp_array[-3]}
+		#echo "[i] $sbp_name ($sbp_version) <$sbp_build>"
+		check_location $sbp_name
+		if [[ -d "$REPO/$LOCATION" ]]; then
+ 			source <(grep 'VERSION=${VERSION:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+ 			source <(grep 'BUILD=${BUILD:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
+			if [ "$VERSION" = "$sbp_version" ] && [ "$BUILD" = "$sbp_build" ]; then
+				searched_status "[i]" "$sbp_name"
+			else
+				searched_status "[u]" "$sbp_name"
+				# UPDATE_${sbp_name}="yes"
+			fi
+		fi
+	fi
+}
+
 display_requires(){
 	requires_array=( $REQUIRES )
 	for d in ${requires_array[@]}; do
@@ -292,6 +322,24 @@ hoorex_array(){
 		echo "$1 not found at SlackBuilds.org"
 		exit 1
 	fi
+}
+
+build_packages(){
+	hoorex_array=( $hoorex )
+	for h in ${hoorex_array[@]}; do
+		show_installed_package $h
+		installed_array=( $sbp_installed )
+	
+		if [ "${#installed_array[@]}" -eq "0" ]; then
+			check_location $h
+			cd $LOCATION
+			check_md5sum_source_title
+			check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
+			report_md5sum_source
+			build
+			install_package
+		fi
+	done
 }
 
 hoorex_output(){
@@ -373,6 +421,9 @@ options(){
 		;;
 		installed)
 			SBO_INSTALLED="yes"
+		;;
+		install)
+		    SBO_INSTALLPKG="yes"
 		;;
 		updates)
 			SBO_DIFF="yes"
