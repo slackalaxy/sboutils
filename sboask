@@ -311,7 +311,7 @@ display_requires(){
 	done
 }
 
-hoorex_array(){
+hoorex_create_array(){
 	if [ "$2" = "DEPS" ]; then
 		hoorex=$(hoorex -r "$1")
 	else
@@ -324,7 +324,7 @@ hoorex_array(){
 	fi
 }
 
-build_packages(){
+install_packages(){
 	hoorex_array=( $hoorex )
 	for h in ${hoorex_array[@]}; do
 		show_installed_package $h
@@ -333,11 +333,13 @@ build_packages(){
 		if [ "${#installed_array[@]}" -eq "0" ]; then
 			check_location $h
 			cd $LOCATION
-			check_md5sum_source_title
-			check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
-			report_md5sum_source
-			build
-			install_package
+			# the next 5 are from sborun
+			#check_md5sum_source_title
+			#check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
+			#report_md5sum_source
+			#build
+			#install_package
+			sborun -d -b -i
 		fi
 	done
 }
@@ -531,16 +533,20 @@ main(){
 	fi
 
 	if [ "$SBO_DEPS" = "yes" ] && [ ! -z "$2" ]; then
-		hoorex_array "$2" DEPS
+		hoorex_create_array "$2" DEPS
 		dependencies_title_info
 		hoorex_output
 		exit 0
 	fi
 	if [ "$SBO_DEPENDENTS" = "yes" ] && [ ! -z "$2" ]; then
-		hoorex_array "$2" DEPENDENTS
+		hoorex_create_array "$2" DEPENDENTS
 		dependencies_title_info
 		hoorex_output
 		exit 0
+	fi
+	if [ "SBO_INSTALLPKG" = "yes" ]; then
+		hoorex_create_array "$2" DEPS
+		install_packages
 	fi
 	exit 0
 }

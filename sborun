@@ -25,7 +25,6 @@ SBO_UPGRADE="no"
 SBO_REINSTALL="no"
 SBO_DOWNLOAD="no"
 SBO_DOWNLOAD_NO_CERTIFICATE="no"
-SBO_REDOWNLOAD="no"
 SBO_PKGLINT="no"
 
 is_input_empty(){
@@ -136,16 +135,11 @@ download_source(){
 	local -n local_array_download=$1
 	for (( d=0; d<${#local_array_download[@]}; d++ )); do
 		NAME_d=$(basename ${local_array_download[$d]} | sed 's:%20:\ :g')
-		if [ -f "${SBOASK_SOURCES_DIR}/$NAME_d" ] && [ "$SBO_REDOWNLOAD" = "no" ]; then
+		if [ -f "${SBOASK_SOURCES_DIR}/$NAME_d" ]; then
 			echo "[d] $NAME_d"
-		elif [ -f "${SBOASK_SOURCES_DIR}/$NAME_d" ] && [ "$SBO_REDOWNLOAD" = "yes" ]; then
-			echo "[o] $NAME_d"
-			wget $cert -c "${local_array_download[$d]}" -P ${SBOASK_SOURCES_DIR}
-			#ln -s $SBOASK_SOURCES_DIR/$NAME_d .
 		elif [ ! -f "${SBOASK_SOURCES_DIR}/$NAME_d" ]; then
 			echo "[ ] $NAME_d"
 			wget $cert -c "${local_array_download[$d]}" -P ${SBOASK_SOURCES_DIR}
-			#ln -s $SBOASK_SOURCES_DIR/$NAME_d .
 		else
 			echo "${SBOASK_SOURCES_DIR}/$NAME_d"
 		fi
