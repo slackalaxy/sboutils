@@ -409,6 +409,8 @@ list_differences(){
 	done
 }
 
+# Scan the packages db for updates, the pool them all together with their dependencies.
+# In a second round, get the ones that need updates from the list.
 list_differences_upgrade_all(){
 	echo "Scanning packages database for updates..."
 	upgrades_array=()
@@ -456,22 +458,22 @@ updates_title(){
 }
 
 helper() {
-	echo "Usage: `basename $0` [task] SlackBuild [-v]"
+	echo "Usage: `basename $0` [task] package [-v]"
 	echo "Tasks:"
-	echo "  sync           sync with remote SlackBuilds repo"
-	echo "  info           display information about a SlackBuild"
-	echo "  install        build and install a package and its dependencies"
-	echo "  upgrade        upgrade a package"
-	echo "  upgrade-all    upgrade all SBo packages"
-	echo "  installed      list installed packages"
-	echo "  updates        list potential updates of packages"
-	echo "  isinst         show if a package is installed"
-	echo "  dep            show dependencies chain for a SlackBuild"
-	echo "  dependee       show what depends on a SlackBuild"
-	echo "  find|search    search for a SlackBuild by name"
-	echo "  key            search by keyword"
-	echo "  foot           show footprint of a package"
-	echo "  help           print this help"
+	echo "  sync                 sync with remote SlackBuilds repo"
+	echo "  updates              list potential updates of packages"
+	echo "  installed            list installed packages"
+	echo "  upgrade-all          upgrade all SBo packages"
+	echo "  info <pkg>           display information about a SlackBuild"
+	echo "  install <pkg>        build and install a package and its dependencies"
+	echo "  upgrade <pkg>        upgrade a package"
+	echo "  isinst <pkg>         show if a package is installed"
+	echo "  dep <pkg>            show dependencies chain for a SlackBuild"
+	echo "  dependee <pkg>       show what depends on a SlackBuild"
+	echo "  find|search <pkg>    search for a SlackBuild by name"
+	echo "  key <pkg>            search by keyword"
+	echo "  foot <pkg>           show footprint of a package"
+	echo "  help                 print this help"
 	echo "Option:"
 	echo "  -v, --verbose  display short description of package"
 }
