@@ -281,7 +281,9 @@ list_upgrades_all(){
 	BUILD=""
 	upgrades_array=()
 	show_installed_package $p
-	installed_array=( $sbp_installed )
+	installed_array_one=( $sbp_installed )
+	installed_array=$(hoorex -r installed_array_one)
+	
 	if [ "${#installed_array[@]}" -eq "0" ]; then
 		searched_status "[ ]" "$p"
  	elif [ "${#installed_array[@]}" -gt "1" ]; then
@@ -296,7 +298,7 @@ list_upgrades_all(){
  			source <(grep 'VERSION=${VERSION:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
  			source <(grep 'BUILD=${BUILD:' $REPO/$LOCATION/${sbp_name}.SlackBuild)
 			if [ "$VERSION" != "$sbp_version" ] || [ "$BUILD" != "$sbp_build" ]; then
-				echo "$sbp_name " >> $upgrades_array
+				upgrades_array+=$(echo "$sbp_name ")
 			fi
 		fi
 	fi
