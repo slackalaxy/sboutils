@@ -329,16 +329,9 @@ install_packages(){
 	for h in ${hoorex_array[@]}; do
 		show_installed_package $h
 		installed_array=( $sbp_installed )
-	
 		if [ "${#installed_array[@]}" -eq "0" ]; then
 			check_location $h
-			cd $LOCATION
-			# the next 5 are from sborun
-			#check_md5sum_source_title
-			#check_md5sum_source ARRAY_DOWNLOAD ARRAY_MD5SUM
-			#report_md5sum_source
-			#build
-			#install_package
+			cd $REPO/$LOCATION
 			sborun -d -b -i
 		fi
 	done
@@ -544,7 +537,7 @@ main(){
 		hoorex_output
 		exit 0
 	fi
-	if [ "SBO_INSTALLPKG" = "yes" ]; then
+	if [ "$SBO_INSTALLPKG" = "yes" ]; then
 		hoorex_create_array "$2" DEPS
 		install_packages
 	fi
