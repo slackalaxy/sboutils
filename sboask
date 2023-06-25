@@ -279,10 +279,8 @@ list_upgrades_all(){
 	local p=${1}
 	VERSION=""
 	BUILD=""
-	upgrades_array=()
 	show_installed_package $p
-	installed_array_one=( $sbp_installed )
-	installed_array=$(hoorex -r installed_array_one)
+	installed_array=( $sbp_installed )
 	
 	if [ "${#installed_array[@]}" -eq "0" ]; then
 		searched_status "[ ]" "$p"
@@ -374,7 +372,7 @@ upgrade_packages(){
 }
 
 upgrade_packages_all(){
-	hoorex_array=( $upgrades_array )
+	hoorex_array=( $list_upgrades_all )
 	for h in ${hoorex_array[@]}; do
 		show_installed_package $h
 		installed_array=( $sbp_installed )
@@ -408,6 +406,29 @@ list_differences(){
 			f=$(basename "${i%-*-*-*}")
 			list_upgrades $f
 		fi
+	done
+}
+
+list_differences_upgrade_all(){
+	echo "Scanning packages database for updates..."
+	upgrades_array=()
+	for i in /var/lib/pkgtools/packages/* ; do
+		if echo $i | grep -q "_SBo" ; then
+			f=$(basename "${i%-*-*-*}")
+			list_upgrades_all $f
+		fi
+	done
+	order_all=$( hoorex -r $upgrades_array )
+	echo "Arranging updates in their correct order..."
+	upgrades_array=()
+	for g in ${order_all[@]}; do
+		list_upgrades_all $g
+	done
+	for u in ${upgrades_array[@]}; do
+		check_location $u
+		check_location_exit $u
+		cd $REPO/$LOCATION
+		sborun -d -b -u
 	done
 }
 
@@ -471,6 +492,9 @@ options(){
 		;;
 		upgrade)
 		    SBO_UPGRADEPKG="yes"
+		;;
+		upgrade-all)
+		    SBO_UPGRADEALL="yes"
 		;;
 		updates)
 			SBO_DIFF="yes"
@@ -538,6 +562,11 @@ main(){
 		exit 0
 	fi
 	
+	if [ "$SBO_UPGRADEALL" = "yes" ]; then
+		list_differences_upgrade_all
+		exit 0
+	fi
+
 	is_input_empty "$2"
 
 	if [ "$SBO_FIND" = "yes" ] && [ ! -z "$2" ]; then
@@ -592,13 +621,11 @@ main(){
 	if [ "$SBO_INSTALLPKG" = "yes" ]; then
 		hoorex_create_array "$2" DEPS
 		install_packages
+		exit 0
 	fi
 	if [ "$SBO_UPGRADEPKG" = "yes" ]; then
 		upgrade_packages
-	fi
-	if [ "$SBO_UPGRADEALL" = "yes" ]; then
-		hoorex_create_array "$2" DEPS
-		install_packages
+		exit 0
 	fi
 	exit 0
 }
