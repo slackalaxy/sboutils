@@ -458,18 +458,18 @@ updates_title(){
 }
 
 helper() {
-	echo "Usage: `basename $0` [task] package [-v]"
+	echo "Usage: `basename $0` task <package> [-v]"
 	echo "Tasks:"
 	echo "  sync                 sync with remote SlackBuilds repo"
-	echo "  updates              list potential updates of packages"
-	echo "  installed            list installed packages"
-	echo "  upgrade-all          upgrade all SBo packages"
 	echo "  info <pkg>           display information about a SlackBuild"
 	echo "  install <pkg>        build and install a package and its dependencies"
 	echo "  upgrade <pkg>        upgrade a package"
-	echo "  isinst <pkg>         show if a package is installed"
+	echo "  updates              list potential updates of packages"
+	echo "  upgrade-all          upgrade all SBo packages"
 	echo "  dep <pkg>            show dependencies chain for a SlackBuild"
 	echo "  dependee <pkg>       show what depends on a SlackBuild"
+	echo "  installed            list installed packages"
+	echo "  isinst <pkg>         show if a package is installed"
 	echo "  find|search <pkg>    search for a SlackBuild by name"
 	echo "  key <pkg>            search by keyword"
 	echo "  foot <pkg>           show footprint of a package"
